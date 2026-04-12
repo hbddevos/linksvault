@@ -11,9 +11,9 @@ use App\Filament\Resources\Categories\Schemas\CategoryInfolist;
 use App\Filament\Resources\Categories\Tables\CategoriesTable;
 use App\Models\Category;
 use BackedEnum;
+use Daljo25\FilamentTablerIcons\Enums\TablerIcon;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Daljo25\FilamentTablerIcons\Enums\TablerIcon;
 use Filament\Tables\Table;
 
 class CategoryResource extends Resource

@@ -11,9 +11,9 @@ use App\Filament\Resources\Links\Schemas\LinkInfolist;
 use App\Filament\Resources\Links\Tables\LinksTable;
 use App\Models\Link;
 use BackedEnum;
+use Daljo25\FilamentTablerIcons\Enums\TablerIcon;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Daljo25\FilamentTablerIcons\Enums\TablerIcon;
 use Filament\Tables\Table;
 
 class LinkResource extends Resource

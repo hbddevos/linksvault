@@ -3,6 +3,12 @@
 ## 2026-04-12
 
 ### Features
+- **Action Patterns** : Création des actions CRUD pour Link, Category et Tag
+  - Actions : CreateAction, UpdateAction, DeleteAction, ListAction, ShowAction
+  - Gestion automatique du `user_id` et `team_id` lors de la création
+  - Filtrage automatique par équipe grâce au global scope `BelongsToTeam`
+  - Support de la suppression multiple pour DeleteAction
+  - Filtrage avancé pour ListAction (recherche, catégorie, type, favoris, archivés)
 - **Filament Resources** : Création des resources Links, Categories et Tags
   - Pages CRUD complètes (List, Create, Edit, View) pour chaque resource
   - Tables, formulaires et infolists configurés avec Filament v5
