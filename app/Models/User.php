@@ -17,7 +17,7 @@ use LaravelDaily\FilaTeams\Contracts\HasTeamMembership;
 class User extends Authenticatable implements HasTeamMembership
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasTeams;
+    use HasFactory, HasTeams, Notifiable;
 
     /**
      * Get the attributes that should be cast.
