@@ -4,7 +4,7 @@ namespace App\Actions\CategoryActions;
 
 use App\Models\Category;
 
-class DeleteAction
+class DeleteCategoryAction
 {
     public static function execute(Category $category): bool
     {

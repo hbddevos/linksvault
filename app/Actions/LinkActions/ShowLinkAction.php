@@ -4,7 +4,7 @@ namespace App\Actions\LinkActions;
 
 use App\Models\Link;
 
-class ShowAction
+class ShowLinkAction
 {
     public static function execute(int $id): Link
     {

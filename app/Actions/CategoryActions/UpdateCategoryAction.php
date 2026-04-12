@@ -5,7 +5,7 @@ namespace App\Actions\CategoryActions;
 use App\Models\Category;
 use Illuminate\Support\Str;
 
-class UpdateAction
+class UpdateCategoryAction
 {
     public static function execute(Category $category, array $data): Category
     {

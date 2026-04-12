@@ -6,7 +6,7 @@ use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
-class CreateAction
+class CreateCategoryAction
 {
     public static function execute(array $data): Category
     {

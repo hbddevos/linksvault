@@ -6,7 +6,7 @@ use App\Models\Tag;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
-class CreateAction
+class CreateTagAction
 {
     public static function execute(array $data): Tag
     {

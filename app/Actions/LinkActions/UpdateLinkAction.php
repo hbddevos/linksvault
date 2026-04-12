@@ -4,7 +4,7 @@ namespace App\Actions\LinkActions;
 
 use App\Models\Link;
 
-class UpdateAction
+class UpdateLinkAction
 {
     public static function execute(Link $link, array $data): Link
     {

@@ -4,7 +4,7 @@ namespace App\Actions\LinkActions;
 
 use App\Models\Link;
 
-class DeleteAction
+class DeleteLinkAction
 {
     public static function execute(Link $link): bool
     {

@@ -5,7 +5,7 @@ namespace App\Actions\LinkActions;
 use App\Models\Link;
 use Illuminate\Database\Eloquent\Collection;
 
-class ListAction
+class ListLinksAction
 {
     public static function execute(array $filters = [], string $orderBy = 'created_at', string $orderDirection = 'desc'): Collection
     {

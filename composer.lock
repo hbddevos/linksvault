@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3c716b12a883a779f7c45642c33111cb",
+    "content-hash": "070e7bccd7547d506ba5e04bdd89e4e7",
     "packages": [
         {
             "name": "blade-ui-kit/blade-heroicons",
@@ -613,6 +613,67 @@
             "time": "2026-03-16T11:29:23+00:00"
         },
         {
+            "name": "davidhsianturi/blade-bootstrap-icons",
+            "version": "v2.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/davidhsianturi/blade-bootstrap-icons.git",
+                "reference": "6b6729e90e36c38e2c2f6bc557bba99c93a03db7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/davidhsianturi/blade-bootstrap-icons/zipball/6b6729e90e36c38e2c2f6bc557bba99c93a03db7",
+                "reference": "6b6729e90e36c38e2c2f6bc557bba99c93a03db7",
+                "shasum": ""
+            },
+            "require": {
+                "blade-ui-kit/blade-icons": "^1.6",
+                "illuminate/support": "^9.0|^10.0|^11.0|^12.0|^13.0",
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^7.0|^8.0|^9.0|^10.1|^11.0",
+                "phpunit/phpunit": "^9.0|^10.5|^11.5|^12.5.12"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Davidhsianturi\\BladeBootstrapIcons\\BladeBootstrapIconsServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Davidhsianturi\\BladeBootstrapIcons\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "David H. Sianturi",
+                    "email": "davidhsianturi@gmail.com",
+                    "homepage": "https://davidhsianturi.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A package to easily make use of Bootstrap Icons in your Laravel Blade views.",
+            "homepage": "https://github.com/davidhsianturi/blade-bootstrap-icons",
+            "keywords": [
+                "Bootstrap Icons",
+                "blade",
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/davidhsianturi/blade-bootstrap-icons/issues",
+                "source": "https://github.com/davidhsianturi/blade-bootstrap-icons/tree/v2.2.0"
+            },
+            "time": "2026-04-02T08:34:05+00:00"
+        },
+        {
             "name": "dflydev/dot-access-data",
             "version": "v3.0.3",
             "source": {
@@ -984,6 +1045,74 @@
                 }
             ],
             "time": "2025-03-06T22:45:56+00:00"
+        },
+        {
+            "name": "fawaziwalewa/filament-icon-picker",
+            "version": "0.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/fawaziwalewa/filament-icon-picker.git",
+                "reference": "d030b68f5833d428b883d8eaa4137e35c13a5e93"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/fawaziwalewa/filament-icon-picker/zipball/d030b68f5833d428b883d8eaa4137e35c13a5e93",
+                "reference": "d030b68f5833d428b883d8eaa4137e35c13a5e93",
+                "shasum": ""
+            },
+            "require": {
+                "blade-ui-kit/blade-heroicons": "^2.0",
+                "blade-ui-kit/blade-icons": "^1.0",
+                "davidhsianturi/blade-bootstrap-icons": "^2.0",
+                "filament/filament": "^5.0",
+                "illuminate/support": "^12.0|^13.0",
+                "mallardduck/blade-lucide-icons": "^1.26",
+                "owenvoke/blade-fontawesome": "^3.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^9.0",
+                "pestphp/pest": "^3.0|^4.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "FawazIwalewa\\FilamentIconPicker\\FilamentIconPickerServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "FawazIwalewa\\FilamentIconPicker\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fawaz Iwalewa (WizardAlani)",
+                    "email": "fawaziwalewa@gmail.com",
+                    "homepage": "https://github.com/fawaziwalewa/"
+                }
+            ],
+            "description": "A beautiful icon picker field for FilamentPHP v5 with support for Heroicons, Lucide and more",
+            "keywords": [
+                "Heroicons",
+                "filament",
+                "filament-plugin",
+                "icon-picker",
+                "laravel",
+                "livewire",
+                "lucide"
+            ],
+            "support": {
+                "issues": "https://github.com/fawaziwalewa/filament-icon-picker/issues",
+                "source": "https://github.com/fawaziwalewa/filament-icon-picker/tree/v0.2.0"
+            },
+            "time": "2026-04-04T19:04:46+00:00"
         },
         {
             "name": "filament/actions",
@@ -3363,6 +3492,66 @@
             "time": "2026-04-02T20:48:35+00:00"
         },
         {
+            "name": "mallardduck/blade-lucide-icons",
+            "version": "1.26.12",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mallardduck/blade-lucide-icons.git",
+                "reference": "bd6f832ce594acbb2328cecebad236839c8cc17d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mallardduck/blade-lucide-icons/zipball/bd6f832ce594acbb2328cecebad236839c8cc17d",
+                "reference": "bd6f832ce594acbb2328cecebad236839c8cc17d",
+                "shasum": ""
+            },
+            "require": {
+                "blade-ui-kit/blade-icons": "^1.8",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "ext-dom": "*",
+                "ext-fileinfo": "*",
+                "orchestra/testbench": "^6.0|^7.0|^8.0|^9.0|^10.0",
+                "phpunit/phpunit": "^9.0|^10.0|^11.0",
+                "spatie/phpunit-snapshot-assertions": "^4.2.14|^5.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "MallardDuck\\LucideIcons\\BladeLucideIconsServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "MallardDuck\\LucideIcons\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Dan Pock"
+                }
+            ],
+            "description": "A package to easily make use of Lucide icons in your Laravel Blade views.",
+            "homepage": "https://github.com/mallardduck/blade-lucide-icons",
+            "keywords": [
+                "LucideIcons",
+                "blade",
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/mallardduck/blade-lucide-icons/issues",
+                "source": "https://github.com/mallardduck/blade-lucide-icons/tree/1.26.12"
+            },
+            "time": "2026-04-10T00:26:49+00:00"
+        },
+        {
             "name": "monolog/monolog",
             "version": "3.10.0",
             "source": {
@@ -4039,6 +4228,66 @@
                 }
             ],
             "time": "2025-09-03T16:03:54+00:00"
+        },
+        {
+            "name": "owenvoke/blade-fontawesome",
+            "version": "v3.2.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/owenvoke/blade-fontawesome.git",
+                "reference": "5a199630dd70c5133d58c158a974e12bcd8b3a71"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/owenvoke/blade-fontawesome/zipball/5a199630dd70c5133d58c158a974e12bcd8b3a71",
+                "reference": "5a199630dd70c5133d58c158a974e12bcd8b3a71",
+                "shasum": ""
+            },
+            "require": {
+                "blade-ui-kit/blade-icons": "^1.8",
+                "illuminate/support": "^12.0|^13.0",
+                "php": "^8.3"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.25",
+                "orchestra/testbench": "^10.6|^11.0",
+                "pestphp/pest": "^4.1",
+                "phpstan/phpstan": "^2.1",
+                "symfony/var-dumper": "^7.3"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "OwenVoke\\BladeFontAwesome\\BladeFontAwesomeServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "OwenVoke\\BladeFontAwesome\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "A package to easily make use of Font Awesome in your Laravel Blade views",
+            "support": {
+                "issues": "https://github.com/owenvoke/blade-fontawesome/issues",
+                "source": "https://github.com/owenvoke/blade-fontawesome/tree/v3.2.2"
+            },
+            "funding": [
+                {
+                    "url": "https://ecologi.com/owenvoke?gift-trees",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/owenvoke",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-03-20T08:37:22+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",

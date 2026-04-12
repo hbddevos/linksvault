@@ -5,7 +5,7 @@ namespace App\Actions\LinkActions;
 use App\Models\Link;
 use Illuminate\Support\Facades\Auth;
 
-class CreateAction
+class CreateLinkAction
 {
     public static function execute(array $data): Link
     {

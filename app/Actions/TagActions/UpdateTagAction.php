@@ -5,7 +5,7 @@ namespace App\Actions\TagActions;
 use App\Models\Tag;
 use Illuminate\Support\Str;
 
-class UpdateAction
+class UpdateTagAction
 {
     public static function execute(Tag $tag, array $data): Tag
     {

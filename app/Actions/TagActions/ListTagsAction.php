@@ -1,20 +1,20 @@
 <?php
 
-namespace App\Actions\CategoryActions;
+namespace App\Actions\TagActions;
 
-use App\Models\Category;
+use App\Models\Tag;
 use Illuminate\Database\Eloquent\Collection;
 
-class ListAction
+class ListTagsAction
 {
-    public static function execute(array $filters = [], string $orderBy = 'sort_order', string $orderDirection = 'asc'): Collection
+    public static function execute(array $filters = [], string $orderBy = 'name', string $orderDirection = 'asc'): Collection
     {
-        $query = Category::query();
+        $query = Tag::query();
 
         if (isset($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('name', 'like', "%{$filters['search']}%")
-                    ->orWhere('description', 'like', "%{$filters['search']}%");
+                    ->orWhere('slug', 'like', "%{$filters['search']}%");
             });
         }
 

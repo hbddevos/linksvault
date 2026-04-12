@@ -4,7 +4,7 @@ namespace App\Actions\CategoryActions;
 
 use App\Models\Category;
 
-class ShowAction
+class ShowCategoryAction
 {
     public static function execute(int $id): Category
     {

@@ -4,6 +4,7 @@
 
 ### Features
 - **Action Patterns** : Création des actions CRUD pour Link, Category et Tag
+  - Convention de nommage `VerbeModelAction` (ex: `CreateLinkAction`, `ListCategoriesAction`)
   - Actions : CreateAction, UpdateAction, DeleteAction, ListAction, ShowAction
   - Gestion automatique du `user_id` et `team_id` lors de la création
   - Filtrage automatique par équipe grâce au global scope `BelongsToTeam`

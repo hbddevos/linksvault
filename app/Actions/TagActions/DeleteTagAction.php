@@ -4,7 +4,7 @@ namespace App\Actions\TagActions;
 
 use App\Models\Tag;
 
-class DeleteAction
+class DeleteTagAction
 {
     public static function execute(Tag $tag): bool
     {

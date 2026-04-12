@@ -92,4 +92,10 @@ return [
         'admin'  => 'Admin',
         'member' => 'Member',
     ],
+    'Name' => 'Name',
+    'Slug' => 'Slug',
+    'Color' => 'Color',
+    'Icon' => 'Icon',
+    'Description' => 'Description',
+    'Sort Order' => 'Sort Order',
 ];

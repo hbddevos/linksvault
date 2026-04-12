@@ -4,7 +4,7 @@ namespace App\Actions\TagActions;
 
 use App\Models\Tag;
 
-class ShowAction
+class ShowTagAction
 {
     public static function execute(int $id): Tag
     {
