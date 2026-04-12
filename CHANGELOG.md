@@ -2,14 +2,15 @@
 
 ## 2026-04-12
 
-### Technical
-- Installation des packages filament v5 et Filament-Teams
-- Configuration du panel
-- Ajout du team_id aux tables : links, categories, tags, exports, google_drives
-- Migrations par défaut de tables : links, categories, tags, exports, google_drives
-
 ### Features
-- Ajout des traductions
+- **Filament Resources** : Création des resources Links, Categories et Tags
+  - Pages CRUD complètes (List, Create, Edit, View) pour chaque resource
+  - Tables, formulaires et infolists configurés avec Filament v5
+  - Intégration automatique du team scoping via les modèles
+- **Icônes Tabler** : Installation de `daljo25/filament-tabler-icons`
+  - Intégration des icônes Tabler dans l'interface Filament
+
+### Technical
 - **Team Scoping Global Scope** : Ajout du trait `BelongsToTeam` pour filtrer automatiquement les requêtes par `current_team_id`
   - Filtrage automatique de toutes les requêtes sur les modèles Link, Category, Tag, GoogleDrive
   - Scopes supplémentaires : `withoutTeamScope()`, `forTeam($teamId)`, `allTeams()`
