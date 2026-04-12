@@ -9,13 +9,15 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use LaravelDaily\FilaTeams\Concerns\HasTeams;
+use LaravelDaily\FilaTeams\Contracts\HasTeamMembership;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable
+class User extends Authenticatable implements HasTeamMembership
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasTeams;
 
     /**
      * Get the attributes that should be cast.
