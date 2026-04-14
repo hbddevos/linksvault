@@ -140,13 +140,14 @@ class LinkForm
                                     $lang = strtolower($lang);
 
                                     // Utiliser le nouveau service CLI avec fallback multi-langues
-                                    $subtitles = (new \App\Services\GoogleClient\YouTube\YouTubeTranscriptCliService())
-                                        ->getTranscript($video_id, languages: [$lang, 'en']);
+                                    $cliService = new \App\Services\GoogleClient\YouTube\YouTubeTranscriptCliService();
+                                    
+                                    // Récupérer la transcription avec troncature automatique (1000 mots max)
+                                    $subtitle = $cliService->getPlainText($video_id, [$lang, 'en'], 1000);
 
-                                    if (!$subtitles || !isset($subtitles['full_text'])) {
+                                    if (!$subtitle) {
                                         // Vérifier si on a des infos sur les langues disponibles
-                                        $availableLangs = (new \App\Services\GoogleClient\YouTube\YouTubeTranscriptCliService())
-                                            ->getAvailableLanguages($video_id);
+                                        $availableLangs = $cliService->getAvailableLanguages($video_id);
                                         
                                         $langList = !empty($availableLangs) 
                                             ? implode(', ', array_column($availableLangs, 'language'))
@@ -155,30 +156,17 @@ class LinkForm
                                         $set('ai_summary', "⚠️ Impossible de récupérer la transcription.\n\n**Langues disponibles :** {$langList}\n\nVérifiez que la vidéo possède des sous-titres activés.");
                                         return;
                                     }
-
-                                    // Afficher la stratégie utilisée (pour info)
-                                    $strategyInfo = isset($subtitles['strategy_used']) 
-                                        ? "\n\n*Stratégie : {$subtitles['strategy_used']}*" 
-                                        : '';
-                                    
-                                    // Limiter le texte si trop long
-                                    if (str_word_count($subtitles['full_text']) > 1000) {
-                                        $subtitle = str($subtitles['full_text'])->limit(1000)->value();
-                                    } else {
-                                        $subtitle = $subtitles['full_text'];
-                                    }
                                     
                                     // Générer le résumé avec l'agent AI
                                     $agent = (new YoutubeTranscriptSummary)->prompt(
-                                        "Analyse et génère le résumé en français de cette transcription YouTube (langue originale : {$subtitles['language_code']}) : {$subtitle}",
+                                        "Analyse et génère le résumé en français de cette transcription YouTube (langue originale : {$lang}) : {$subtitle}",
                                         model: 'openai/gpt-oss-120b',
                                         provider: Lab::Groq
                                     );
 
                                     // Ajouter les métadonnées au résumé
                                     $metadata = "**Vidéo :** {$video_infos->snippet->title}\n";
-                                    $metadata .= "**Langue :** {$subtitles['language']}";
-                                    $metadata .= $strategyInfo;
+                                    $metadata .= "**Langue détectée :** " . ucfirst($lang);
                                     $metadata .= "\n\n---\n\n";
                                     
                                     $set('ai_summary', $metadata . $agent->text);

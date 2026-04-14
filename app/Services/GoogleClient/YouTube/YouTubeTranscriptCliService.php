@@ -9,23 +9,17 @@ use Illuminate\Support\Facades\Log;
 class YouTubeTranscriptCliService
 {
     /**
-     * Récupérer la transcription avec fallback multi-langues
+     * Récupérer la transcription en utilisant la commande CLI native
      * 
-     * Cette version utilise l'approche CLI qui accepte plusieurs langues
-     * et laisse l'API gérer le fallback automatiquement.
+     * Utilise directement: youtube_transcript_api VIDEO_ID --languages fr en
      * 
      * @param string $videoId ID de la vidéo YouTube
-     * @param array|string $languages Langue(s) à essayer (peut être une chaîne ou un tableau)
-     * @return array|null Transcription ou null en cas d'échec
+     * @param array $languages Liste des langues prioritaires (défaut: ['fr', 'en'])
+     * @return array|null Transcription structurée ou null en cas d'échec
      */
-    public function getTranscript(string $videoId, array|string $languages = ['fr', 'en']): ?array
+    public function getTranscript(string $videoId, array $languages = ['fr', 'en']): ?array
     {
-        // Normaliser les langues en tableau
-        if (is_string($languages)) {
-            $languages = [$languages];
-        }
-        
-        // Normaliser chaque code de langue
+        // Normaliser les codes de langue
         $normalizedLanguages = array_map(
             fn($lang) => $this->normalizeLanguageCode($lang),
             $languages
@@ -34,106 +28,285 @@ class YouTubeTranscriptCliService
         $cacheKey = "transcript_cli_" . md5($videoId . '_' . implode('_', $normalizedLanguages));
         
         return Cache::remember($cacheKey, now()->addHours(24), function () use ($videoId, $normalizedLanguages) {
-            return $this->executePythonScript($videoId, $normalizedLanguages);
+            return $this->executeCliCommand($videoId, $normalizedLanguages);
         });
     }
 
     /**
-     * Exécuter le script Python CLI et retourner le résultat
+     * Exécuter la commande CLI et parser la sortie
      */
-    protected function executePythonScript(string $videoId, array $languages): ?array
+    protected function executeCliCommand(string $videoId, array $languages): ?array
     {
-        // Construire la commande avec toutes les langues
         $languagesStr = implode(' ', $languages);
-        $command = "python " . storage_path('app/scripts/get_transcript_cli.py') . " {$videoId} {$languagesStr}";
         
-        Log::info("Exécution commande transcription CLI", [
-            'command' => $command,
+        // Utiliser un script Python wrapper qui exécute la commande et retourne du JSON propre
+        $wrapperScript = storage_path('app/scripts/_cli_wrapper.py');
+        $wrapperCode = <<<'PYTHON'
+import subprocess
+import ast
+import json
+import sys
+import io
+
+# Forcer UTF-8 pour la sortie stdout
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
+video_id = sys.argv[1]
+languages = sys.argv[2:]
+
+try:
+    # Exécuter youtube_transcript_api
+    cmd = ['youtube_transcript_api', video_id, '--languages'] + languages
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', errors='replace')
+    
+    if not result.stdout or result.returncode != 0:
+        print(json.dumps({"error": "command_failed", "stderr": result.stderr}))
+        sys.exit(0)
+    
+    output = result.stdout.strip()
+    
+    # Parser la sortie Python
+    data = ast.literal_eval(output)
+    
+    # Extraire les segments
+    if isinstance(data, list) and len(data) > 0:
+        segments = data[0] if isinstance(data[0], list) else data
+    else:
+        segments = data
+    
+    # Formater en JSON propre
+    formatted_segments = []
+    for seg in segments:
+        if isinstance(seg, dict) and 'text' in seg and seg['text'].strip():
+            formatted_segments.append({
+                'text': seg['text'].strip(),
+                'start': seg.get('start', 0),
+                'duration': seg.get('duration', 0)
+            })
+    
+    print(json.dumps(formatted_segments, ensure_ascii=False))
+    
+except Exception as e:
+    print(json.dumps({"error": str(e)}))
+PYTHON;
+        
+        file_put_contents($wrapperScript, $wrapperCode);
+        
+        Log::info("Exécution wrapper CLI", [
             'video_id' => $videoId,
             'languages' => $languages
         ]);
         
-        $process = Process::run($command);
-        $output = $process->output();
-        $errorOutput = $process->errorOutput();
+        $process = Process::run("python {$wrapperScript} {$videoId} {$languagesStr}");
+        $jsonOutput = $process->output();
         
-        if ($errorOutput) {
-            Log::error("Erreur dans le script Python CLI", [
-                'error' => $errorOutput,
-                'video_id' => $videoId,
-                'languages' => $languages
+        // Nettoyer le fichier temporaire
+        @unlink($wrapperScript);
+        
+        if (!$jsonOutput) {
+            Log::error("Sortie vide du wrapper CLI", [
+                'video_id' => $videoId
             ]);
+            return null;
         }
         
-        if ($output) {
-            $result = json_decode($output, true);
-            
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                Log::error("Erreur de décodage JSON", [
-                    'error' => json_last_error_msg(),
-                    'output' => $output,
-                    'video_id' => $videoId
-                ]);
-                return null;
-            }
-            
-            // Vérifier les erreurs retournées par le script
-            if (isset($result['error'])) {
-                Log::warning("Erreur API transcription CLI", [
-                    'error' => $result['error'],
-                    'message' => $result['message'] ?? '',
-                    'requested_languages' => $result['requested_languages'] ?? $languages,
-                    'video_id' => $videoId
-                ]);
-                return null;
-            }
-            
-            if (isset($result['segments'])) {
-                Log::info("Transcription CLI réussie - Stratégie: {$result['strategy_used']}", [
-                    'video_id' => $videoId,
-                    'requested_languages' => $languages,
-                    'actual_language' => $result['language_code'] ?? null,
-                    'is_generated' => $result['is_generated'] ?? null,
-                    'segments_count' => count($result['segments'])
-                ]);
-                
-                return $result;
-            }
+        $segments = json_decode($jsonOutput, true);
+        
+        // Vérifier les erreurs
+        if (isset($segments['error'])) {
+            Log::error("Erreur wrapper CLI", [
+                'error' => $segments['error'],
+                'video_id' => $videoId
+            ]);
+            return null;
         }
         
-        return null;
+        if (!is_array($segments) || empty($segments)) {
+            Log::warning("Aucun segment extrait", [
+                'video_id' => $videoId
+            ]);
+            return null;
+        }
+        
+        $fullText = implode(' ', array_column($segments, 'text'));
+        
+        $result = [
+            'video_id' => $videoId,
+            'language_code' => $languages[0] ?? 'unknown',
+            'language' => $this->getLanguageName($languages[0] ?? 'unknown'),
+            'is_generated' => true,
+            'segments' => $segments,
+            'full_text' => $fullText,
+            'strategy_used' => "CLI avec langues: " . implode(', ', $languages),
+            'requested_languages' => $languages
+        ];
+        
+        Log::info("Transcription CLI réussie", [
+            'video_id' => $videoId,
+            'segments_count' => count($segments),
+            'text_length' => strlen($fullText)
+        ]);
+        
+        return $result;
     }
 
     /**
-     * Normaliser le code de langue (extraire ISO 639-1 à 2 lettres)
-     * Ex: 'fr-FR' -> 'fr', 'en-US' -> 'en', 'pt-BR' -> 'pt'
+     * Parser la sortie brute Python (format: [[{...}]])
+     */
+    protected function parsePythonOutput(string $output): ?array
+    {
+        try {
+            // Nettoyer la sortie
+            $cleaned = trim($output);
+            
+            // Écrire dans un fichier temporaire pour éviter les limites de ligne de commande
+            $tempInputFile = storage_path('app/scripts/_transcript_input.txt');
+            file_put_contents($tempInputFile, $cleaned);
+            
+            // Script Python pour parser et convertir en JSON
+            $parserScript = storage_path('app/scripts/_parse_transcript_output.py');
+            $parserCode = <<<'PYTHON'
+import ast
+import sys
+import json
+
+try:
+    with open(sys.argv[1], 'r', encoding='utf-8', errors='replace') as f:
+        content = f.read()
+    
+    # Remplacer les caractères problématiques avant parsing
+    data = ast.literal_eval(content)
+    
+    # La structure est [[{...}]] - prendre le premier élément
+    if isinstance(data, list) and len(data) > 0:
+        if isinstance(data[0], list):
+            result = data[0]
+        else:
+            result = data
+    else:
+        result = data
+    
+    print(json.dumps(result, ensure_ascii=False))
+except Exception as e:
+    print(json.dumps({"error": str(e)}))
+PYTHON;
+            
+            file_put_contents($parserScript, $parserCode);
+            
+            // Exécuter le parser
+            $process = Process::run("python {$parserScript} {$tempInputFile}");
+            $jsonOutput = $process->output();
+            
+            // Nettoyer les fichiers temporaires
+            @unlink($tempInputFile);
+            @unlink($parserScript);
+            
+            if (!$jsonOutput) {
+                return null;
+            }
+            
+            $parsed = json_decode($jsonOutput, true);
+            
+            // Vérifier s'il y a eu une erreur
+            if (isset($parsed['error'])) {
+                Log::error("Erreur parsing Python", [
+                    'error' => $parsed['error']
+                ]);
+                return null;
+            }
+            
+            return $parsed;
+            
+        } catch (\Exception $e) {
+            Log::error("Exception lors du parsing", [
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Extraire les segments de la structure parsée
+     */
+    protected function extractSegments(?array $parsed): array
+    {
+        // Plus utilisé - la logique est maintenant dans le wrapper Python
+        return [];
+    }
+
+    /**
+     * Tronquer le texte s'il est trop long
+     */
+    public function truncateText(string $text, int $maxWords = 1000): string
+    {
+        $words = str_word_count($text);
+        
+        if ($words <= $maxWords) {
+            return $text;
+        }
+        
+        // Tronquer au nombre de mots maximum
+        $truncated = implode(' ', array_slice(explode(' ', $text), 0, $maxWords));
+        
+        return $truncated . '...';
+    }
+
+    /**
+     * Récupérer en texte brut uniquement (tronqué si nécessaire)
+     */
+    public function getPlainText(string $videoId, array $languages = ['fr', 'en'], int $maxWords = 1000): ?string
+    {
+        $transcript = $this->getTranscript($videoId, $languages);
+        
+        if (!$transcript || !isset($transcript['full_text'])) {
+            return null;
+        }
+        
+        return $this->truncateText($transcript['full_text'], $maxWords);
+    }
+
+    /**
+     * Normaliser le code de langue
      */
     protected function normalizeLanguageCode(string $language): string
     {
         if (str_contains($language, '-')) {
-            $normalized = explode('-', $language)[0];
-            return strtolower($normalized);
+            return strtolower(explode('-', $language)[0]);
         }
         
         return strtolower($language);
     }
 
     /**
-     * Récupérer en texte brut uniquement
+     * Obtenir le nom complet de la langue
      */
-    public function getPlainText(string $videoId, array|string $languages = ['fr', 'en']): ?string
+    protected function getLanguageName(string $code): string
     {
-        $transcript = $this->getTranscript($videoId, $languages);
+        $languages = [
+            'fr' => 'French',
+            'en' => 'English',
+            'es' => 'Spanish',
+            'de' => 'German',
+            'it' => 'Italian',
+            'pt' => 'Portuguese',
+            'ja' => 'Japanese',
+            'ko' => 'Korean',
+            'zh' => 'Chinese',
+            'ar' => 'Arabic',
+            'ru' => 'Russian',
+        ];
         
-        return $transcript['full_text'] ?? null;
+        return $languages[$code] ?? ucfirst($code);
     }
 
     /**
-     * Récupérer les sous-titres disponibles
+     * Récupérer les langues disponibles (nécessite un appel séparé)
      */
     public function getAvailableLanguages(string $videoId): array
     {
-        $command = "python " . storage_path('app/scripts/get_transcript_cli.py') . " {$videoId} list 2>&1";
+        // Pour lister les langues, on peut essayer d'appeler sans --languages
+        // ou utiliser l'ancien script Python
+        $command = "python " . storage_path('app/scripts/get_transcript.py') . " {$videoId} list 2>&1";
         
         $output = shell_exec($command);
         
@@ -150,7 +323,7 @@ class YouTubeTranscriptCliService
     /**
      * Exporter en format SRT
      */
-    public function exportToSRT(string $videoId, array|string $languages = ['fr', 'en']): ?string
+    public function exportToSRT(string $videoId, array $languages = ['fr', 'en']): ?string
     {
         $transcript = $this->getTranscript($videoId, $languages);
         
