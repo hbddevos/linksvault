@@ -10,6 +10,12 @@
   - Détection et affichage des langues disponibles en cas d'échec
   - Logging détaillé de la stratégie utilisée pour le débogage
   - Cache Laravel (24h) pour optimiser les performances
+- **YouTube Transcription CLI** : Nouvelle approche simplifiée avec commande native
+  - Nouveau script `get_transcript_cli.py` utilisant l'interface CLI de youtube_transcript_api
+  - Service dédié `YouTubeTranscriptCliService` avec support multi-langues natif
+  - Fallback automatique géré par la bibliothèque elle-même
+  - Syntaxe plus simple : passage direct d'un tableau de langues prioritaires
+  - Coexistence avec l'ancien service pour flexibilité maximale
 - **Intégration Filament** : Génération de résumés AI depuis l'interface
   - Bouton "Generate AI Summary" dans le formulaire des liens
   - Affichage des métadonnées (titre vidéo, langue, stratégie)
@@ -18,8 +24,9 @@
 
 ### Technical
 - **Architecture transcription** : Séparation claire des responsabilités
-  - Script Python (`get_transcript.py`) : Gestion du fallback intelligent
-  - Service Laravel (`YouTubeTranscriptService`) : Exécution et cache
+  - Script Python (`get_transcript.py`) : Gestion du fallback intelligent (approche manuelle)
+  - Script Python CLI (`get_transcript_cli.py`) : Approche simplifiée avec API native
+  - Services Laravel (`YouTubeTranscriptService`, `YouTubeTranscriptCliService`) : Exécution et cache
   - Formulaire Filament (`LinkForm`) : Interface utilisateur et AI
 - **Normalisation des langues** : Conversion automatique des formats
   - YouTube API retourne parfois 'fr-FR', 'en-US' → normalisé en 'fr', 'en'

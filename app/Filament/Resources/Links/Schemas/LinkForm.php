@@ -139,13 +139,13 @@ class LinkForm
                                     
                                     $lang = strtolower($lang);
 
-                                    // Récupérer la transcription avec gestion d'erreur
-                                    $subtitles = (new \App\Services\GoogleClient\YouTube\YouTubeTranscriptService())
-                                        ->getTranscript($video_id, language: $lang);
+                                    // Utiliser le nouveau service CLI avec fallback multi-langues
+                                    $subtitles = (new \App\Services\GoogleClient\YouTube\YouTubeTranscriptCliService())
+                                        ->getTranscript($video_id, languages: [$lang, 'en']);
 
                                     if (!$subtitles || !isset($subtitles['full_text'])) {
                                         // Vérifier si on a des infos sur les langues disponibles
-                                        $availableLangs = (new \App\Services\GoogleClient\YouTube\YouTubeTranscriptService())
+                                        $availableLangs = (new \App\Services\GoogleClient\YouTube\YouTubeTranscriptCliService())
                                             ->getAvailableLanguages($video_id);
                                         
                                         $langList = !empty($availableLangs) 
