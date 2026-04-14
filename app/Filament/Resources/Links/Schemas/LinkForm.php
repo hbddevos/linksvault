@@ -3,11 +3,11 @@
 namespace App\Filament\Resources\Links\Schemas;
 
 use Alaouy\Youtube\Youtube;
-use App\Ai\Agents\YoutubeTranscriptSummary;
+use App\Ai\Agents\LinkDescriptionAgent;
 use App\Enums\ContentType;
 use App\Models\Category;
+use App\Models\Tag;
 use App\Services\ContentDetectionService;
-use App\Services\YouTubeTranscriptService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\MarkdownEditor;
@@ -79,7 +79,117 @@ class LinkForm
                         ->maxLength(500),
                 ]),
             MarkdownEditor::make('description')
-                ->label(__('Description')),
+                ->label(__('Description'))
+                ->afterLabel(
+                    Action::make('generate_ai_description')
+                        ->label(__('Generate AI Description'))
+                        ->icon('heroicon-o-sparkles')
+                        ->button()
+                        ->color('primary')
+                        ->action(function ($state, Set $set, Get $get) {
+                            $url = $get('url');
+                            $title = $get('title');
+                            $contentType = $get('content_type');
+                            $existingDescription = $state ?? '';
+                            
+                            try {
+                                // Préparer le contexte pour l'agent
+                                $context = "Titre: {$title}\n";
+                                $context .= "URL: {$url}\n";
+                                $context .= "Type de contenu: {$contentType}\n";
+                                
+                                if (!empty($existingDescription)) {
+                                    $context .= "Description existante: {$existingDescription}\n";
+                                }
+                                
+                                // Récupérer les métadonnées si disponibles
+                                $metadata = $get('metadata');
+                                if (!empty($metadata) && $metadata !== '{}') {
+                                    $context .= "Métadonnées: {$metadata}\n";
+                                }
+                                
+                                // Si c'est YouTube, ajouter des infos supplémentaires
+                                if ($contentType === 'youtube') {
+                                    try {
+                                        $video_id = Youtube::parseVidFromURL($url);
+                                        $video_infos = \Alaouy\Youtube\Facades\Youtube::getVideoInfo($video_id);
+                                        $context .= "\nInformations YouTube:\n";
+                                        $context .= "- Titre vidéo: {$video_infos->snippet->title}\n";
+                                        $context .= "- Chaîne: {$video_infos->snippet->channelTitle}\n";
+                                        $context .= "- Date de publication: {$video_infos->snippet->publishedAt}\n";
+                                        
+                                        if (!empty($video_infos->snippet->description)) {
+                                            $context .= "- Description originale: " . substr($video_infos->snippet->description, 0, 500) . "\n";
+                                        }
+                                    } catch (\Exception $e) {
+                                        Log::warning("Impossible de récupérer les infos YouTube", ['error' => $e->getMessage()]);
+                                    }
+                                }
+                                
+                                // Générer la description avec l'agent AI
+                                $agent = (new LinkDescriptionAgent)->prompt(
+                                    "Génère une description enrichie, des tags et une catégorie suggérée basée sur ces informations:\n\n{$context}",
+                                    model: 'openai/gpt-oss-120b',
+                                    provider: Lab::Groq
+                                );
+                                
+                                $response = $agent->text;
+                                
+                                // Parser la réponse de l'agent
+                                $description = '';
+                                $tags = [];
+                                $category = '';
+                                
+                                // Extraire la description
+                                if (preg_match('/\*\*DESCRIPTION :\*\*\s*(.+?)(?=\n\n\*\*TAGS :\*\*|$)/s', $response, $matches)) {
+                                    $description = trim($matches[1]);
+                                }
+                                
+                                // Extraire les tags
+                                if (preg_match('/\*\*TAGS :\*\*\s*(.+?)(?=\n\n\*\*CATÉGORIE SUGGÉRÉE :\*\*|$)/s', $response, $matches)) {
+                                    $tagsString = trim($matches[1]);
+                                    $tags = array_map('trim', explode(',', $tagsString));
+                                    $tags = array_filter($tags); // Supprimer les éléments vides
+                                }
+                                
+                                // Extraire la catégorie
+                                if (preg_match('/\*\*CATÉGORIE SUGGÉRÉE :\*\*\s*(.+?)$/m', $response, $matches)) {
+                                    $category = trim($matches[1]);
+                                }
+                                
+                                // Mettre à jour les champs
+                                if (!empty($description)) {
+                                    $set('description', $description);
+                                }
+                                
+                                // Si des tags ont été générés, les afficher dans un message
+                                if (!empty($tags)) {
+                                    $tagsList = implode(', ', $tags);
+                                    // On pourrait ici mettre à jour un champ tags si on avait un multi-select
+                                    // Pour l'instant, on affiche juste un message informatif
+                                }
+                                
+                                // Si une catégorie a été suggérée et qu'il n'y en a pas déjà une
+                                if (!empty($category) && empty($get('category_id'))) {
+                                    // Chercher si la catégorie existe déjà
+                                    $existingCategory = Category::where('name', 'LIKE', "%{$category}%")->first();
+                                    if ($existingCategory) {
+                                        $set('category_id', $existingCategory->id);
+                                    }
+                                    // Sinon, on pourrait créer une nouvelle catégorie automatiquement
+                                }
+                                
+                            } catch (\Exception $e) {
+                                Log::error("Erreur génération description AI", [
+                                    'error' => $e->getMessage(),
+                                    'trace' => $e->getTraceAsString(),
+                                    'url' => $url
+                                ]);
+                                
+                                // Laisser la description telle quelle ou afficher un message d'erreur
+                            }
+                        })
+                ),
             Hidden::make('metadata')
                 ->default('{}'),
             Grid::make(3)
@@ -94,11 +204,41 @@ class LinkForm
                         ->label(__('Category'))
                         ->options(fn() => Category::pluck('name', 'id'))
                         ->searchable()
-                        ->preload(),
+                        ->preload()
+                        ->createOptionForm([
+                            TextInput::make('name')
+                                ->label(__('Name'))
+                                ->required()
+                                ->maxLength(255),
+                            TextInput::make('slug')
+                                ->label(__('Slug'))
+                                ->maxLength(255),
+                        ])
+                        ->createOptionUsing(function (array $data): int {
+                            return Category::create($data)->id;
+                        }),
                     TextInput::make('objective')
                         ->label(__('Objective'))
                         ->maxLength(255),
                 ]),
+            Select::make('tags')
+                ->label(__('Tags'))
+                ->relationship('tags', 'name')
+                ->multiple()
+                ->preload()
+                ->searchable()
+                ->createOptionForm([
+                    TextInput::make('name')
+                        ->label(__('Name'))
+                        ->required()
+                        ->maxLength(255),
+                    TextInput::make('slug')
+                        ->label(__('Slug'))
+                        ->maxLength(255),
+                ])
+                ->createOptionUsing(function (array $data): int {
+                    return Tag::create($data)->id;
+                }),
             Grid::make(2)
                 ->components([
                     Toggle::make('is_favorite')

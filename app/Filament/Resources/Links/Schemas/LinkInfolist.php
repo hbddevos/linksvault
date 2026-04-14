@@ -33,7 +33,7 @@ class LinkInfolist
                         Group::make([
                             TextEntry::make('url')
                                 ->label('')
-                                ->url(fn ($record) => $record->url, shouldOpenInNewTab: true)
+                                ->url(fn($record) => $record->url, shouldOpenInNewTab: true)
                                 ->copyable()
                                 ->copyMessage(__('URL copied to clipboard'))
                                 ->color('gray')
@@ -58,26 +58,40 @@ class LinkInfolist
                         TextEntry::make('category.name')
                             ->label(__('Category'))
                             ->badge()
-                            ->color(fn ($state) => $state ? 'primary' : 'gray')
+                            ->color(fn($state) => $state ? 'primary' : 'gray')
                             ->placeholder('—'),
 
-                        // Tags
+                        // Tags - Improved display
                         RepeatableEntry::make('tags')
                             ->label(__('Tags'))
                             ->schema([
                                 TextEntry::make('name')
                                     ->badge()
-                                    ->color('gray'),
+                                    ->color('info')
+                                    ->icon('heroicon-m-tag'),
                             ])
                             ->contained(false)
-                            ->columns(3)
-                            ->visible(fn ($record) => $record->tags && $record->tags->count() > 0)
+                            ->grid(3)
+                            ->visible(fn($record) => $record->tags && $record->tags->count() > 0)
                             ->placeholder('—'),
 
                         // Divider
                         Group::make([])
                             ->extraAttributes(['class' => 'border-t border-gray-200 dark:border-gray-700 my-4']),
 
+                        // AI Summary section
+                        Section::make([
+                            Group::make([
+                                TextEntry::make('description')
+                                    ->label(__('Description'))
+                                    ->markdown()
+                                    ->placeholder(__('No description provided.')),
+                            ])->columnSpanFull(),
+                        ])
+                            ->heading(__('Description'))
+                            ->headerActions([
+                            ])
+                            ->collapsed(fn($record) => blank($record->ai_summary)),
                         // AI Summary section
                         Section::make([
                             Group::make([
@@ -93,9 +107,9 @@ class LinkInfolist
                                     ->label(__('Regenerate'))
                                     ->icon('heroicon-o-sparkles')
                                     ->color('primary')
-                                    ->visible(fn ($record) => filled($record->url)),
+                                    ->visible(fn($record) => filled($record->url)),
                             ])
-                            ->collapsed(fn ($record) => blank($record->ai_summary)),
+                            ->collapsed(fn($record) => blank($record->ai_summary)),
 
                         // Objective
                         TextEntry::make('objective')
@@ -110,9 +124,9 @@ class LinkInfolist
                         Section::make([
                             Actions::make([
                                 Action::make('toggle_favorite')
-                                    ->label(fn ($record) => $record->is_favorite ? __('Remove from favorites') : __('Add to favorites'))
-                                    ->icon(fn ($record) => $record->is_favorite ? 'heroicon-s-star' : 'heroicon-o-star')
-                                    ->color(fn ($record) => $record->is_favorite ? 'warning' : 'gray'),
+                                    ->label(fn($record) => $record->is_favorite ? __('Remove from favorites') : __('Add to favorites'))
+                                    ->icon(fn($record) => $record->is_favorite ? 'heroicon-s-star' : 'heroicon-o-star')
+                                    ->color(fn($record) => $record->is_favorite ? 'warning' : 'gray'),
                                 Action::make('archive')
                                     ->label(__('Archive'))
                                     ->icon('heroicon-o-archive-box')
