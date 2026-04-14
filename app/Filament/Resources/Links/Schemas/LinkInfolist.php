@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Links\Schemas;
 
+use App\Filament\Resources\Links\Actions\ShareLinkModalAction;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -33,7 +34,7 @@ class LinkInfolist
                         Group::make([
                             TextEntry::make('url')
                                 ->label('')
-                                ->url(fn($record) => $record->url, shouldOpenInNewTab: true)
+                                ->url(fn ($record) => $record->url, shouldOpenInNewTab: true)
                                 ->copyable()
                                 ->copyMessage(__('URL copied to clipboard'))
                                 ->color('gray')
@@ -58,7 +59,7 @@ class LinkInfolist
                         TextEntry::make('category.name')
                             ->label(__('Category'))
                             ->badge()
-                            ->color(fn($state) => $state ? 'primary' : 'gray')
+                            ->color(fn ($state) => $state ? 'primary' : 'gray')
                             ->placeholder('—'),
 
                         // Tags - Improved display
@@ -72,44 +73,19 @@ class LinkInfolist
                             ])
                             ->contained(false)
                             ->grid(3)
-                            ->visible(fn($record) => $record->tags && $record->tags->count() > 0)
+                            ->visible(fn ($record) => $record->tags && $record->tags->count() > 0)
                             ->placeholder('—'),
 
                         // Divider
                         Group::make([])
                             ->extraAttributes(['class' => 'border-t border-gray-200 dark:border-gray-700 my-4']),
 
-                        // AI Summary section
-                        Section::make([
-                            Group::make([
-                                TextEntry::make('description')
-                                    ->label(__('Description'))
-                                    ->markdown()
-                                    ->placeholder(__('No description provided.')),
-                            ])->columnSpanFull(),
-                        ])
-                            ->heading(__('Description'))
-                            ->headerActions([
-                            ])
-                            ->collapsed(fn($record) => blank($record->ai_summary)),
-                        // AI Summary section
-                        Section::make([
-                            Group::make([
-                                TextEntry::make('ai_summary')
-                                    ->label(__('AI Summary'))
-                                    ->markdown()
-                                    ->placeholder(__('No AI summary generated yet.')),
-                            ])->columnSpanFull(),
-                        ])
-                            ->heading(__('AI Summary'))
-                            ->headerActions([
-                                Action::make('regenerate_summary')
-                                    ->label(__('Regenerate'))
-                                    ->icon('heroicon-o-sparkles')
-                                    ->color('primary')
-                                    ->visible(fn($record) => filled($record->url)),
-                            ])
-                            ->collapsed(fn($record) => blank($record->ai_summary)),
+                        // Description section
+                        TextEntry::make('description')
+                            ->label(__('Description'))
+                            ->markdown()
+                            ->placeholder(__('No description provided.'))
+                            ->columnSpanFull(),
 
                         // Objective
                         TextEntry::make('objective')
@@ -123,10 +99,13 @@ class LinkInfolist
                         // Actions section
                         Section::make([
                             Actions::make([
+                                ShareLinkModalAction::make()
+                                    ->label(__('Partager'))
+                                    ->icon('heroicon-o-share'),
                                 Action::make('toggle_favorite')
-                                    ->label(fn($record) => $record->is_favorite ? __('Remove from favorites') : __('Add to favorites'))
-                                    ->icon(fn($record) => $record->is_favorite ? 'heroicon-s-star' : 'heroicon-o-star')
-                                    ->color(fn($record) => $record->is_favorite ? 'warning' : 'gray'),
+                                    ->label(fn ($record) => $record->is_favorite ? __('Remove from favorites') : __('Add to favorites'))
+                                    ->icon(fn ($record) => $record->is_favorite ? 'heroicon-s-star' : 'heroicon-o-star')
+                                    ->color(fn ($record) => $record->is_favorite ? 'warning' : 'gray'),
                                 Action::make('archive')
                                     ->label(__('Archive'))
                                     ->icon('heroicon-o-archive-box')
@@ -138,7 +117,7 @@ class LinkInfolist
                                     ->label(__('Delete'))
                                     ->icon('heroicon-o-trash')
                                     ->color('danger'),
-                            ])->columns(2),
+                            ])->columns(3),
                         ])->heading(__('Actions')),
                     ]),
             ]);

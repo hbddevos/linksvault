@@ -58,7 +58,10 @@ tag1, tag2, tag3, tag4, tag5
 **CATÉGORIE SUGGÉRÉE :**
 [Nom de la catégorie]
 
-Si les informations fournies sont insuffisantes pour générer une description complète, indique-le clairement et suggère à l'utilisateur de fournir plus de détails.
+Guidelines pour les linen autre que youtube :
+- fourni un template que l'utilisateur va remplir
+- crée des canvas avec les parties qu'il remplira avec un message l'invitant a le faire et pourquoi
+
 PROMPT;
     }
 

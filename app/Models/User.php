@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use LaravelDaily\FilaTeams\Concerns\HasTeams;
@@ -30,5 +31,21 @@ class User extends Authenticatable implements HasTeamMembership
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Les liens que cet utilisateur a partagés.
+     */
+    public function sharedLinks(): HasMany
+    {
+        return $this->hasMany(LinkShare::class, 'sender_user_id');
+    }
+
+    /**
+     * Les liens partagés avec cet utilisateur.
+     */
+    public function receivedLinks(): HasMany
+    {
+        return $this->hasMany(LinkShare::class, 'recipient_user_id');
     }
 }

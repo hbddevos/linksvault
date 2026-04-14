@@ -8,6 +8,7 @@ use App\Enums\ContentType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Link extends Model
 {
@@ -62,6 +63,14 @@ class Link extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class);
+    }
+
+    /**
+     * Les partages de ce lien.
+     */
+    public function shares(): HasMany
+    {
+        return $this->hasMany(LinkShare::class);
     }
 
     public function getYoutubeVideoId(): ?string

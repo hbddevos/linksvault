@@ -3,6 +3,18 @@
 ## 2026-04-14
 
 ### Features
+- **Link Sharing System** : Système complet de partage de liens avec notifications
+  - Partage de liens avec utilisateurs inscrits et emails externes
+  - Double notification : email + notification in-app (Filament) pour utilisateurs inscrits
+  - Tracking complet des partages (envoyé, ouvert, cliqué)
+  - Gestion d'expiration des liens partagés (optionnel)
+  - Messages personnalisés accompagnant les partages
+  - Support de partage multiple (jusqu'à 10 destinataires simultanément)
+- **Shared Links Dashboard** : Vues dédiées pour gérer les partages
+  - Onglet "Liens envoyés" : historique des partages effectués
+  - Onglet "Liens reçus" : liens partagés avec l'utilisateur
+  - Statistiques de partage (total envoyé/reçu, activité récente)
+  - Filtres par statut et par date
 - **AI Description Generator** : Nouvel agent AI pour générer des descriptions enrichies
   - Agent `LinkDescriptionAgent` avec instructions détaillées en français
   - Génération automatique de descriptions structurées basées sur le contenu
@@ -21,6 +33,14 @@
   - Interface épurée focalisée sur l'essentiel
 
 ### Technical
+- **Link Share Architecture** : Architecture robuste pour le partage
+  - Modèle `LinkShare` avec relations complètes (sender, recipient, link)
+  - Tokens uniques sécurisés pour le tracking (`Str::random(64)`)
+  - Action métier `ShareLinkAction` avec gestion d'erreurs complète
+  - Mailable `LinkSharedMail` avec queue pour performance
+  - Notification `LinkSharedNotification` supportant database, mail et Filament
+  - Controller `LinkShareController` pour tracking des clics
+  - Route `/share/{token}` avec vérification d'expiration
 - **Nouvel Agent AI** : Architecture extensible pour génération de contenu
   - Pattern Promptable pour flexibilité maximale
   - Instructions détaillées avec format de réponse structuré
