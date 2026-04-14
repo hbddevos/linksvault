@@ -10,17 +10,19 @@ use Laravel\Ai\Enums\Lab;
 
 Route::get('/', function () {
 
-    $subtitles = (new \App\Services\GoogleClient\YouTube\YouTubeTranscriptService())->getTranscript('jHRHV1MNR5s');
+    // $subtitles = (new \App\Services\GoogleClient\YouTube\YouTubeTranscriptService())->getTranscript('jHRHV1MNR5s');
 
     // dd($subtitles);
 
-    dump(str($subtitles['full_text'])->limit(500)->value());
+    // dump(str($subtitles['full_text'])->limit(500)->value());
+
+    // https://www.youtube.com/watch?v=WJL-WFsIpi4
 
 // youtube_transcript_api <first_video_id> <second_video_id> ... --languages de en
-    dd(Process::run("youtube_transcript_api ReqHcXhYzWA --languages en fr")->output());
+    dd(Process::run("youtube_transcript_api WJL-WFsIpi4 --languages en fr es de")->output());
 
 
-    dump(Youtube::getVideoInfo(Youtube::parseVidFromURL('https://youtu.be/J0W_Ety8j6Q?si=dqblijCl0KsMtfUC'))->snippet->title);
+    // dump(Youtube::getVideoInfo(Youtube::parseVidFromURL('https://youtu.be/J0W_Ety8j6Q?si=dqblijCl0KsMtfUC'))->snippet->title);
 
 
 

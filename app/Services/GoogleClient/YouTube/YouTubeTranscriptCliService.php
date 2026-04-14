@@ -37,9 +37,57 @@ class YouTubeTranscriptCliService
      */
     protected function executeCliCommand(string $videoId, array $languages): ?array
     {
+        // Étape 1: Essayer d'abord avec les langues demandées via CLI
+        $result = $this->tryFetchWithLanguages($videoId, $languages);
+        
+        if ($result) {
+            return $result;
+        }
+        
+        // Étape 2: Si échec, lister les langues disponibles et choisir intelligemment
+        Log::info("Échec avec langues demandées, tentative de détection automatique", [
+            'video_id' => $videoId
+        ]);
+        
+        $availableLangs = $this->listAvailableLanguages($videoId);
+        
+        if (!$availableLangs) {
+            Log::error("Impossible de lister les langues disponibles", [
+                'video_id' => $videoId
+            ]);
+            return null;
+        }
+        
+        // Choisir la meilleure langue (fr > en > première disponible)
+        $selectedLang = $this->selectBestLanguage($availableLangs);
+        
+        if (!$selectedLang) {
+            Log::error("Aucune langue sélectionnable", [
+                'video_id' => $videoId,
+                'available_languages' => $availableLangs
+            ]);
+            return null;
+        }
+        
+        // Réessayer avec la langue choisie
+        $result = $this->tryFetchWithLanguages($videoId, [$selectedLang['code']]);
+        
+        if ($result) {
+            $result['strategy_used'] = $selectedLang['strategy'];
+            $result['available_languages'] = $availableLangs;
+            return $result;
+        }
+        
+        return null;
+    }
+
+    /**
+     * Essayer de récupérer la transcription avec des langues spécifiques
+     */
+    protected function tryFetchWithLanguages(string $videoId, array $languages): ?array
+    {
         $languagesStr = implode(' ', $languages);
         
-        // Utiliser un script Python wrapper qui exécute la commande et retourne du JSON propre
         $wrapperScript = storage_path('app/scripts/_cli_wrapper.py');
         $wrapperCode = <<<'PYTHON'
 import subprocess
@@ -48,14 +96,12 @@ import json
 import sys
 import io
 
-# Forcer UTF-8 pour la sortie stdout
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 video_id = sys.argv[1]
 languages = sys.argv[2:]
 
 try:
-    # Exécuter youtube_transcript_api
     cmd = ['youtube_transcript_api', video_id, '--languages'] + languages
     result = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', errors='replace')
     
@@ -64,17 +110,13 @@ try:
         sys.exit(0)
     
     output = result.stdout.strip()
-    
-    # Parser la sortie Python
     data = ast.literal_eval(output)
     
-    # Extraire les segments
     if isinstance(data, list) and len(data) > 0:
         segments = data[0] if isinstance(data[0], list) else data
     else:
         segments = data
     
-    # Formater en JSON propre
     formatted_segments = []
     for seg in segments:
         if isinstance(seg, dict) and 'text' in seg and seg['text'].strip():
@@ -92,62 +134,107 @@ PYTHON;
         
         file_put_contents($wrapperScript, $wrapperCode);
         
-        Log::info("Exécution wrapper CLI", [
-            'video_id' => $videoId,
-            'languages' => $languages
-        ]);
-        
         $process = Process::run("python {$wrapperScript} {$videoId} {$languagesStr}");
         $jsonOutput = $process->output();
         
-        // Nettoyer le fichier temporaire
         @unlink($wrapperScript);
         
         if (!$jsonOutput) {
-            Log::error("Sortie vide du wrapper CLI", [
-                'video_id' => $videoId
-            ]);
             return null;
         }
         
         $segments = json_decode($jsonOutput, true);
         
-        // Vérifier les erreurs
-        if (isset($segments['error'])) {
-            Log::error("Erreur wrapper CLI", [
-                'error' => $segments['error'],
-                'video_id' => $videoId
-            ]);
-            return null;
-        }
-        
-        if (!is_array($segments) || empty($segments)) {
-            Log::warning("Aucun segment extrait", [
-                'video_id' => $videoId
-            ]);
+        if (isset($segments['error']) || !is_array($segments) || empty($segments)) {
             return null;
         }
         
         $fullText = implode(' ', array_column($segments, 'text'));
         
-        $result = [
+        return [
             'video_id' => $videoId,
             'language_code' => $languages[0] ?? 'unknown',
             'language' => $this->getLanguageName($languages[0] ?? 'unknown'),
             'is_generated' => true,
             'segments' => $segments,
             'full_text' => $fullText,
-            'strategy_used' => "CLI avec langues: " . implode(', ', $languages),
-            'requested_languages' => $languages
+            'strategy_used' => "CLI direct avec langues: " . implode(', ', $languages)
         ];
+    }
+
+    /**
+     * Lister les langues disponibles via la CLI --list
+     */
+    protected function listAvailableLanguages(string $videoId): ?array
+    {
+        $process = Process::run("youtube_transcript_api {$videoId} --list");
+        $output = $process->output();
         
-        Log::info("Transcription CLI réussie", [
-            'video_id' => $videoId,
-            'segments_count' => count($segments),
-            'text_length' => strlen($fullText)
-        ]);
+        if (!$output) {
+            return null;
+        }
         
-        return $result;
+        // Parser la sortie texte de --list
+        return $this->parseListOutput($output);
+    }
+
+    /**
+     * Parser la sortie texte de --list
+     */
+    protected function parseListOutput(string $output): array
+    {
+        $languages = [];
+        $lines = explode("\n", $output);
+        
+        foreach ($lines as $line) {
+            $line = trim($line);
+            
+            // Chercher les lignes avec format: - fr ("French (auto-generated)")
+            if (preg_match('/^\s*-\s+(\w+)\s+\("([^"]+)"\)/', $line, $matches)) {
+                $code = $matches[1];
+                $name = $matches[2];
+                $isGenerated = stripos($name, 'auto-generated') !== false || stripos($name, 'generated') !== false;
+                
+                $languages[] = [
+                    'code' => $code,
+                    'name' => $name,
+                    'is_generated' => $isGenerated
+                ];
+            }
+        }
+        
+        return $languages;
+    }
+
+    /**
+     * Sélectionner la meilleure langue selon la priorité
+     */
+    protected function selectBestLanguage(array $availableLangs): ?array
+    {
+        if (empty($availableLangs)) {
+            return null;
+        }
+        
+        // Priorité 1: Français
+        foreach ($availableLangs as $lang) {
+            if (stripos($lang['code'], 'fr') === 0) {
+                $lang['strategy'] = "Langue sélectionnée: {$lang['name']} (priorité FR)";
+                return $lang;
+            }
+        }
+        
+        // Priorité 2: Anglais
+        foreach ($availableLangs as $lang) {
+            if (stripos($lang['code'], 'en') === 0) {
+                $lang['strategy'] = "Langue sélectionnée: {$lang['name']} (fallback EN)";
+                return $lang;
+            }
+        }
+        
+        // Priorité 3: Première disponible
+        $first = $availableLangs[0];
+        $first['strategy'] = "Langue sélectionnée: {$first['name']} (première disponible)";
+        return $first;
     }
 
     /**
