@@ -16,6 +16,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('team_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
             $table->string('url', 2083)->comment('Max URL length');
             $table->char('url_hash', 64)->nullable()->comment('SHA256 of URL for duplicate detection');
             $table->string('title', 500)->nullable();
@@ -25,7 +26,6 @@ return new class extends Migration
             $table->text('ai_summary')->nullable();
             $table->enum('ai_summary_status', ['pending', 'processing', 'completed', 'failed'])->default('pending');
             $table->text('objective')->nullable()->comment('User personal objective');
-            $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
             $table->string('favicon_url', 500)->nullable();
             $table->string('thumbnail_url', 500)->nullable();
             $table->boolean('is_favorite')->default(false);

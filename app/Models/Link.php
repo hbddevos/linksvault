@@ -4,13 +4,14 @@ namespace App\Models;
 
 use App\Concerns\AddTeamId;
 use App\Concerns\AddUserId;
-use App\Concerns\BelongsToTeam;
+use App\Enums\ContentType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Link extends Model
 {
-    use AddTeamId, AddUserId, BelongsToTeam;
+    use AddTeamId, AddUserId;
 
     protected $fillable = [
         'user_id',
@@ -35,6 +36,7 @@ class Link extends Model
 
     protected $casts = [
         'url' => 'string',
+        'content_type' => ContentType::class,
         'metadata' => 'array',
         'is_favorite' => 'boolean',
         'is_archived' => 'boolean',
@@ -55,5 +57,42 @@ class Link extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class);
+    }
+
+    public function getYoutubeVideoId(): ?string
+    {
+        if (empty($this->url)) {
+            return null;
+        }
+
+        $pattern = '/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i';
+
+        if (preg_match($pattern, $this->url, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
+    }
+
+    /**
+     * Génère l'URL d'intégration (embed) pour l'iframe.
+     */
+    public function getYoutubeEmbedUrl(): ?string
+    {
+        $id = $this->getYoutubeVideoId();
+
+        return $id ? "https://www.youtube.com/embed/{$id}" : null;
+    }
+
+    public function getYoutubeThumbnailUrl(): ?string
+    {
+        $id = $this->getYoutubeVideoId();
+
+        return $id ? "https://img.youtube.com/vi/{$id}/0.jpg" : null;
     }
 }

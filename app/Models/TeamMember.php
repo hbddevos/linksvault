@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use LaravelDaily\FilaTeams\Models\Membership;
 
-class TeamMember extends Membership
+class TeamMember extends Model
 {
     // protected $fillable = [
     //     'team_id',

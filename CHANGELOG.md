@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-04-14
+
+### Features
+- **YouTube Transcription Multi-langue** : Système intelligent de récupération des transcriptions YouTube
+  - Script Python amélioré avec stratégie de fallback multi-niveaux
+  - Support automatique de toutes les langues (fr, en, es, de, etc.)
+  - Normalisation des codes de langue BCP 47 vers ISO 639-1
+  - Détection et affichage des langues disponibles en cas d'échec
+  - Logging détaillé de la stratégie utilisée pour le débogage
+  - Cache Laravel (24h) pour optimiser les performances
+- **Intégration Filament** : Génération de résumés AI depuis l'interface
+  - Bouton "Generate AI Summary" dans le formulaire des liens
+  - Affichage des métadonnées (titre vidéo, langue, stratégie)
+  - Messages d'erreur informatifs avec liste des langues disponibles
+  - Gestion robuste des exceptions avec logging complet
+
+### Technical
+- **Architecture transcription** : Séparation claire des responsabilités
+  - Script Python (`get_transcript.py`) : Gestion du fallback intelligent
+  - Service Laravel (`YouTubeTranscriptService`) : Exécution et cache
+  - Formulaire Filament (`LinkForm`) : Interface utilisateur et AI
+- **Normalisation des langues** : Conversion automatique des formats
+  - YouTube API retourne parfois 'fr-FR', 'en-US' → normalisé en 'fr', 'en'
+  - Fallback automatique : langue demandée → variantes → anglais → première disponible
+- **Amélioration UX** : Feedback clair à l'utilisateur
+  - Emojis pour identifier rapidement le statut (✅ ⚠️ ❌ ℹ️)
+  - Métadonnées affichées avec le résumé AI
+  - Stratégie de récupération transparente pour l'utilisateur
+
 ## 2026-04-12
 
 ### Features

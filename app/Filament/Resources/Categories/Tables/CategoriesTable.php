@@ -10,6 +10,8 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\ColorColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 
 class CategoriesTable
@@ -41,8 +43,9 @@ class CategoriesTable
                     ->sortable(),
             ])
             ->filters([
-                //
-            ])
+                Filter::make('name'),
+
+            ], FiltersLayout::AboveContent)
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),

@@ -22,7 +22,7 @@ class LinkResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = TablerIcon::LinkFilled;
 
-    protected static ?string $recordTitleAttribute = 'name';
+    protected static ?string $recordTitleAttribute = 'title';
 
     public static function form(Schema $schema): Schema
     {

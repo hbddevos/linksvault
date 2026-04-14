@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Alaouy\Youtube\Facades\Youtube;
 use App\Models\Link;
 
 class ContentDetectionService
@@ -13,7 +14,12 @@ class ContentDetectionService
      */
     protected const CONTENT_TYPES = [
         'youtube',
-        'drive',
+        'youtube_playlist',
+        'google_doc',
+        'google_slides',
+        'google_sheet',
+        'google_form',
+        'google_drive',
         'pdf',
         'image',
         'article',
@@ -41,6 +47,12 @@ class ContentDetectionService
     protected const DRIVE_PATTERNS = [
         'drive.google.com',
         'docs.google.com',
+        'drive.google.com/drive/folders',
+        'drive.google.com/file/d',
+        'docs.google.com/spreadsheets/d',
+        'docs.google.com/document/d',
+        'docs.google.com/presentation/d',
+        'docs.google.com/forms/d',
     ];
 
     /**
@@ -59,6 +71,7 @@ class ContentDetectionService
 
     /**
      * Detect content type from a URL.
+     * return a type of link, youtube, google_doc etc...
      */
     public function detectType(string $url): string
     {
@@ -75,7 +88,22 @@ class ContentDetectionService
 
         // Check Google Drive patterns
         if ($this->isGoogleDrive($host)) {
-            return 'drive';
+            if (str_contains($host, 'docs.google.com') || str_contains($path, '/d/')) {
+                if (str_contains($path, '/document/')) {
+                    return 'google_doc';
+                }
+                if (str_contains($path, '/spreadsheets/')) {
+                    return 'google_sheet';
+                }
+                if (str_contains($path, '/presentation/')) {
+                    return 'google_slides';
+                }
+                if (str_contains($path, '/forms/')) {
+                    return 'google_form';
+                }
+            }
+
+            return 'google_drive';
         }
 
         // Check file extension for PDF
@@ -101,7 +129,7 @@ class ContentDetectionService
     {
         return match ($contentType) {
             'youtube' => $this->extractYouTubeMetadata($url),
-            'drive' => $this->extractDriveMetadata($url),
+            'google_drive', 'google_doc', 'google_slides', 'google_sheet', 'google_form' => $this->extractDriveMetadata($url),
             'article' => $this->extractArticleMetadata($url),
             'pdf' => $this->extractPdfMetadata($url),
             'image' => $this->extractImageMetadata($url),
@@ -193,7 +221,7 @@ class ContentDetectionService
      */
     protected function isYouTube(string $host, string $path): bool
     {
-        $fullUrl = $host.$path;
+        $fullUrl = $host . $path;
 
         foreach (self::YOUTUBE_PATTERNS as $pattern) {
             if (str_contains($fullUrl, $pattern)) {
@@ -308,7 +336,7 @@ class ContentDetectionService
     /**
      * Generate a title from URL based on content type.
      */
-    protected function generateTitleFromUrl(string $url, string $type): string
+    public function generateTitleFromUrl(string $url, string $type): string
     {
         $parsed = parse_url($url);
         $host = $parsed['host'] ?? 'Unknown';
@@ -317,11 +345,20 @@ class ContentDetectionService
         $host = str_replace('www.', '', $host);
 
         if ($type === 'youtube') {
-            return "YouTube Video - {$host}";
+
+            $video_id = \Alaouy\Youtube\Youtube::parseVidFromURL($url);
+
+            return Youtube::getVideoInfo($video_id)->snippet->title;
         }
 
-        if ($type === 'drive') {
-            return 'Google Drive File';
+        if (str_starts_with($type, 'google_')) {
+            return match ($type) {
+                'google_doc' => 'Google Doc',
+                'google_sheet' => 'Google Sheet',
+                'google_slides' => 'Google Slides',
+                'google_form' => 'Google Form',
+                default => 'Google Drive File',
+            };
         }
 
         $path = trim($parsed['path'] ?? '', '/');
@@ -333,5 +370,18 @@ class ContentDetectionService
         $title = ucwords($title);
 
         return $title ?: $host;
+    }
+
+
+    public function getYoutubeVideoDescription($url): ?string
+    {
+        if (empty($url)) {
+            return null;
+        }
+
+        $video_id = \Alaouy\Youtube\Youtube::parseVidFromURL($url);
+
+        return Youtube::getVideoInfo($video_id)->snippet->description;
+
     }
 }

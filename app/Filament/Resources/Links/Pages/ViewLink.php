@@ -16,4 +16,11 @@ class ViewLink extends ViewRecord
             EditAction::make(),
         ];
     }
+
+    public function mount(int|string $record): void
+    {
+        parent::mount($record);
+
+        $this->record->load(['tags', 'category']);
+    }
 }
