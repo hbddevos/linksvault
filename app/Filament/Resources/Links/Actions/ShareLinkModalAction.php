@@ -6,12 +6,14 @@ use App\Actions\LinkShareActions\ShareLinkAction as ShareLinkBusinessAction;
 use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
-use Filament\Forms\Components\Fieldset;
+use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Fieldset;
+use Filament\Support\Enums\Width;
 use Illuminate\Support\Facades\Auth;
 
 class ShareLinkModalAction extends Action
@@ -29,11 +31,14 @@ class ShareLinkModalAction extends Action
             ->icon('heroicon-o-share')
             ->color('primary')
             ->modalHeading(__('Partager ce lien'))
-            ->modalWidth('2xl')
+            ->modalWidth(Width::MaxContent)
+            ->slideOver()
             ->form([
                 Fieldset::make('Destinataires')
+                ->columnSpanFull()
                     ->schema([
                         Repeater::make('recipients')
+                        ->columnSpanFull()
                             ->label('')
                             ->schema([
                                 Select::make('user_id')
@@ -75,10 +80,10 @@ class ShareLinkModalAction extends Action
 
                 Fieldset::make('Message')
                     ->schema([
-                        Textarea::make('personal_message')
+                        MarkdownEditor::make('personal_message')
                             ->label(__('Message personnel (optionnel)'))
-                            ->rows(4)
                             ->maxLength(500)
+                            ->columnSpanFull()
                             ->helperText(__('Ajoutez un message personnalisé pour accompagner votre partage.')),
                     ]),
 

@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-04-15
+
+### Features
+- **GLM AI Service Integration** : Intégration complète de l'API GLM (Z.ai)
+  - Service `GlmService` avec trois méthodes principales pour interagir avec l'API GLM
+  - Méthode `chatWithHistory()` : Support des conversations avec historique complet (system, user, assistant)
+  - Méthode `chatStream()` : Streaming en temps réel avec Server-Sent Events (SSE)
+  - Méthode `chatSimple()` : Interface simplifiée pour les requêtes rapides
+  - Gestion automatique des erreurs et logging détaillé
+  - Support configurable du modèle (défaut: glm-5.1) et de la langue
+  - Contrôleur `GlmController` avec endpoints RESTful prêts à l'emploi
+  - Routes dédiées : `/glm/chat`, `/glm/chat/history`, `/glm/chat/stream`
+  - Documentation complète avec exemples cURL et JavaScript
+  - Configuration via variable d'environnement `GLM_API_KEY`
+
 ## 2026-04-14
 
 ### Features

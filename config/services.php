@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'glm' => [
+        'api_key' => env('GLM_API_KEY'),
+    ],
+
 ];

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Links\Schemas;
 
 use Alaouy\Youtube\Youtube;
 use App\Ai\Agents\LinkDescriptionAgent;
+use App\Ai\Agents\YoutubeTranscriptSummary;
 use App\Enums\ContentType;
 use App\Models\Category;
 use App\Models\Tag;
@@ -298,7 +299,7 @@ class LinkForm
                                     }
                                     
                                     // Générer le résumé avec l'agent AI
-                                    $agent = (new YoutubeTranscriptSummary)->prompt(
+                                    $agent = (new YoutubeTranscriptSummary())->prompt(
                                         "Analyse et génère le résumé en français de cette transcription YouTube (langue originale : {$lang}) : {$subtitle}",
                                         model: 'openai/gpt-oss-120b',
                                         provider: Lab::Groq
