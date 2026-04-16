@@ -13,9 +13,9 @@ class GlmService
     protected string $baseUrl = 'https://api.z.ai/api/paas/v4';
 
     /**
-     * Default model to use
+     * Default model to use, glm-4.5-flash, GLM-4.6V-Flash, GLM-4.7-Flash
      */
-    protected string $defaultModel = 'glm-5.1';
+    protected string $defaultModel = 'glm-4.5-flash';
 
     /**
      * API Key for authentication

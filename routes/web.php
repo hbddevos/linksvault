@@ -1,10 +1,13 @@
 <?php
 
 use App\Ai\Agents\YoutubeTranscriptSummary;
+use App\Http\Controllers\AcceptInvitationController;
 use App\Http\Controllers\GlmController;
 use App\Http\Controllers\LinkShareController;
+use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Route;
 use Laravel\Ai\Enums\Lab;
+use App\Services\GlmService;
 
 // Routes pour GLM API
 Route::prefix('glm')->group(function () {
@@ -17,34 +20,40 @@ Route::prefix('glm')->group(function () {
 Route::get('/share/{token}', [LinkShareController::class, 'redirect'])
     ->name('links.share.redirect');
 
-
-    Route::get('/', function () {
-
-    // $subtitles = (new \App\Services\GoogleClient\YouTube\YouTubeTranscriptService())->getTranscript('jHRHV1MNR5s');
-
-    // dd($subtitles);
-
-    // dump(str($subtitles['full_text'])->limit(500)->value());
-
-    // https://www.youtube.com/watch?v=WJL-WFsIpi4
-
-// youtube_transcript_api <first_video_id> <second_video_id> ... --languages de en
-    dd(Process::run("youtube_transcript_api WJL-WFsIpi4 --languages en fr es de")->output());
+Route::get('/team-invitations/{code}/accept', AcceptInvitationController::class)
+    ->middleware(['web', 'signed'])
+    ->name('filateams.invitations.accept');
 
 
-    // dump(Youtube::getVideoInfo(Youtube::parseVidFromURL('https://youtu.be/J0W_Ety8j6Q?si=dqblijCl0KsMtfUC'))->snippet->title);
+    
+Route::get('/', function () {
 
 
+    // $response = app(GlmService::class)->chatSimple('Hello');
+    // $answer = app(GlmService::class)->extractResponse($response);
 
+    // dump($answer, $response);
 
-    // $agent = (new YoutubeTranscriptSummary())->prompt(
-    //     "Anslyse et génère le résumé {$datas['scripts']}",
-    //     model: 'openai/gpt-oss-120b',
-    //     provider: Lab::Ollama
-    // );
+    $process = Process::run("youtube_transcript_api WJL-WFsIpi4 --languages en fr es de");
 
-    // dump($datas['scripts'], $datas['title']);
-    // dd($agent->text);
+    $output = $process->output();
+
+    // supprimer b""" au début et """ à la fin
+    $output = preg_replace('/^b"""|"""$/', '', trim($output));
+
+    $json = str_replace("'", '"', $output);
+    $data = json_decode($json, true);
+    $fullText = '';
+
+    // foreach ($data[0] as $segment) {
+    //     $fullText .= $segment['text'] . ' ';
+    // }
+
+    // $fullText = trim($fullText);
+
+    // echo $fullText;
+
+    dd($output, $data);
 
     return view('welcome');
     // return $agent->then(function (StreamedAgentResponse $response) {

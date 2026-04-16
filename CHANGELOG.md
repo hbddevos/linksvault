@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-04-16
+
+### Features
+- **Team Management System** : Système complet de gestion d'équipes avec invitations
+  - Architecture complète FilaTeams intégrée pour la gestion multi-équipes
+  - Modèle `Team` enrichi avec relations complètes (members, memberships, invitations, owner)
+  - Support des slugs uniques pour les équipes avec génération automatique
+  - Système d'invitations par email avec tokens sécurisés
+  - Modèle `TeamInvitation` avec factory et migration dédiée
+  - Contrôleur `AcceptInvitationController` pour accepter les invitations via liens signés
+  - Notification `TeamInvitationNotification` pour informer les utilisateurs invités
+  - Middleware `EnsureTeamMembership` pour vérifier l'appartenance aux équipes
+  - Policy `TeamPolicy` pour la gestion des autorisations au niveau équipe
+  - Pages Filament dédiées : CreateTeamPage et EditTeam pour la gestion d'équipe
+  - Configuration tenant-aware dans AppPanelProvider avec support multi-tenancy
+  - Enums TeamRole et TeamPermission pour la gestion fine des rôles et permissions
+  - Concerns réutilisables : HasTeams, GeneratesUniqueTeamSlugs, BelongsToTeam
+  - Contracts pour une architecture extensible : HasTeamMembership, TeamPermissionContract, TeamRoleContract
+  - Support des rôles personnalisables via configuration filateams
+  - Relations many-to-many optimisées entre Users et Teams via TeamMember (Pivot)
+  - Factory patterns pour Team et TeamInvitation facilitant les tests
+  - Livewire components : InvitationsManager et MembersTable pour UI interactive
+
+### Technical
+- **Model Refactoring** : Amélioration de l'architecture des modèles
+  - TeamMember transformé en Pivot model pour relations many-to-many optimisées
+  - User model migré vers le concern local HasTeams au lieu du package externe
+  - Casts automatiques pour les rôles d'équipe configurables
+  - Route key name personnalisé sur 'slug' pour URLs plus lisibles
+  - Factory patterns implémentés pour tous les nouveaux modèles
+
+### Changes
+- **GLM Service** : Mise à jour du modèle par défaut
+  - Changement du modèle GLM par défaut de 'glm-5.1' à 'glm-4.5-flash'
+  - Documentation mise à jour avec les modèles disponibles (glm-4.5-flash, GLM-4.6V-Flash, GLM-4.7-Flash)
+
 ## 2026-04-15
 
 ### Features
