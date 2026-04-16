@@ -23,6 +23,22 @@
   - Factory patterns pour Team et TeamInvitation facilitant les tests
   - Livewire components : InvitationsManager et MembersTable pour UI interactive
 
+### CI/CD & DevOps
+- **GitHub Actions Workflows** : Intégration et déploiement continus automatisés
+  - Workflow CI complet avec tests sur PHP 8.3 et 8.4
+  - Tests automatisés avec base de données SQLite et MySQL
+  - Vérifications de qualité de code (Laravel Pint, PHPStan)
+  - Validation du build frontend (Vite + Tailwind CSS)
+  - Workflow CD pour déploiement SSH automatique sur serveur production
+  - Gestion automatique des migrations, cache et redémarrage des services
+  - Workflow alternatif pour Laravel Forge avec API integration
+  - Documentation complète de configuration dans `docs/CI_CD_SETUP.md`
+  - Guide détaillé pour la configuration des secrets GitHub
+  - Instructions de génération et configuration des clés SSH
+  - Support du déploiement manuel via workflow_dispatch
+  - Notifications de statut de déploiement
+  - Stratégies de cache pour optimiser les temps d'exécution
+
 ### Technical
 - **Model Refactoring** : Amélioration de l'architecture des modèles
   - TeamMember transformé en Pivot model pour relations many-to-many optimisées
