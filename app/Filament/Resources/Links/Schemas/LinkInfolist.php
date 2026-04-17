@@ -62,12 +62,13 @@ class LinkInfolist
                             ->placeholder('—'),
 
                         // Tags - Improved display
-                        TextEntry::make('tags.name')
+                        TextEntry::make('tags')
                             ->label(__('Tags'))
                             ->badge()
                             ->color('info')
                             ->icon('heroicon-m-tag')
-                            ->visible(fn ($record) => $record->tags && $record->tags->count() > 0)
+                            ->visible(fn ($record) => $record->tags && count(explode(',', $record->tags)) > 0)
+                            ->separator(',')
                             ->placeholder('—'),
 
                         // Divider
