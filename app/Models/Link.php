@@ -18,6 +18,7 @@ class Link extends Model
         'team_id',
         'url',
         'url_hash',
+        'tags',
         'title',
         'description',
         'content_type',
