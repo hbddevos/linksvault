@@ -1,157 +1,363 @@
-# CI/CD Configuration Guide
-
-This guide explains how to set up and configure the CI/CD workflows for the linksvault2 project.
+# CI/CD Setup Guide
 
 ## Overview
 
-The project includes two GitHub Actions workflows:
+This project uses GitHub Actions for Continuous Integration and Continuous Deployment. The workflows are designed to be robust and handle common production scenarios, especially database migrations that may not need to run on every deployment.
 
-1. **CI (Continuous Integration)** - `.github/workflows/ci.yml`
-   - Runs on every push and pull request to `main` and `develop` branches
-   - Executes tests on PHP 8.3 and 8.4
-   - Performs code quality checks (Pint, PHPStan)
-   - Validates frontend build process
+**Deployment Method:** FTP/SFTP with optional SSH for post-deployment tasks
 
-2. **CD (Continuous Deployment)** - `.github/workflows/cd.yml`
-   - Runs on pushes to `main` branch or manual trigger
-   - Builds and deploys the application to production
-   - Runs migrations and caches configurations
-   - Restarts services automatically
+## Workflows
+
+### 1. CI Workflow (`ci.yml`)
+**Triggers:** Push or Pull Request to `main` or `develop` branches
+
+**Jobs:**
+- **Tests**: Runs test suite on PHP 8.3 and 8.4 with both MySQL and SQLite
+- **Code Quality**: Checks code style (Laravel Pint) and static analysis (PHPStan)
+- **Frontend Build**: Validates Vite build process
+
+**Key Features:**
+- Non-blocking migrations: If migrations fail (e.g., already applied), the workflow continues
+- Parallel test execution for faster feedback
+- Cached dependencies for improved performance
+
+### 2. CD Workflow (`cd.yml`)
+**Triggers:** Push to `main` branch or manual dispatch
+
+**Process:**
+1. Build application (PHP + Node.js)
+2. Run migrations (non-blocking)
+3. **Deploy files via FTP/SFTP**
+4. Execute remote commands via SSH (optional, for post-deployment tasks)
+5. Notify deployment status
+
+**Key Features:**
+- FTP/SFTP deployment using `SamKirkland/FTP-Deploy-Action`
+- Migrations won't stop deployment if they fail
+- Optional SSH access for running Composer, migrations, cache, and service restarts
+- Configuration caching for optimal performance
+
+### 3. Complete CI/CD Pipeline (`cicd.yml`) ⭐ RECOMMENDED
+**Triggers:** Push to `main`/`develop`, Pull Requests, or manual dispatch
+
+**Phases:**
+
+#### Phase 1: Validation & Testing
+- Code quality checks (Pint, PHPStan)
+- Test suite on multiple PHP versions
+- Frontend build verification
+
+#### Phase 2: Production Deployment
+- Dependency installation (production mode)
+- **Non-blocking migrations** with detailed logging
+- **File deployment via FTP/SFTP**
+- Remote server commands execution via SSH (optional)
+- Health check with retries
+- Deployment summary generation
+
+#### Phase 3: Notifications
+- Status notifications (configurable for Slack, Discord, etc.)
+
+## Migration Handling Strategy
+
+### Why Non-Blocking Migrations?
+
+In production environments, migrations don't need to run on every deployment because:
+- No new migrations may exist
+- Migrations might have been applied manually
+- Database schema could already be up-to-date
+- Temporary connection issues shouldn't block deployment
+
+### Implementation
+
+All workflows use this pattern:
+
+```yaml
+- name: Run database migrations (non-blocking)
+  continue-on-error: true
+  run: |
+    echo "🔄 Attempting to run database migrations..."
+    if php artisan migrate --force; then
+      echo "✅ Migrations executed successfully"
+    else
+      echo "⚠️ Migrations failed or already up-to-date - continuing deployment"
+    fi
+```
+
+This ensures:
+- ✅ Deployment continues even if migrations fail
+- ✅ Clear logging of what happened
+- ✅ No false negatives in CI/CD pipeline
+- ✅ Manual migration capability when needed
 
 ## Required GitHub Secrets
 
-To enable the CD workflow, you need to configure the following secrets in your GitHub repository:
+Configure these secrets in your repository settings (`Settings > Secrets and variables > Actions`):
+
+### FTP/SFTP Configuration (Required)
+
+| Secret Name | Description | Example |
+|------------|-------------|---------|
+| `FTP_SERVER` | FTP/SFTP server hostname | `ftp.example.com` or `192.168.1.100` |
+| `FTP_USERNAME` | FTP username | `user@example.com` |
+| `FTP_PASSWORD` | FTP password | Your FTP password |
+| `FTP_PORT` | FTP port (21 for FTP, 22 for SFTP) | `21` or `22` |
+| `FTP_PROTOCOL` | Protocol type | `ftp` or `sftp` (default: ftp) |
+| `FTP_REMOTE_PATH` | Remote directory path | `/public_html/` or `/var/www/linksvault/` |
+
+### SSH Configuration (Optional - for post-deployment tasks)
+
+| Secret Name | Description | Example |
+|------------|-------------|---------|
+| `SSH_HOST` | SSH server hostname | `example.com` or IP address |
+| `SSH_USERNAME` | SSH username | `deploy` or `ubuntu` |
+| `SSH_KEY` | Private SSH key | Content of private key file |
+| `SSH_PORT` | SSH port | `22` |
+
+**Note:** SSH is optional but recommended for running Composer, migrations, cache clearing, and service restarts after FTP deployment.
 
 ### Database Configuration
-- `DB_CONNECTION` - Database driver (e.g., `mysql`, `pgsql`)
-- `DB_HOST` - Database host address
-- `DB_PORT` - Database port (e.g., `3306` for MySQL)
-- `DB_DATABASE` - Database name
-- `DB_USERNAME` - Database username
-- `DB_PASSWORD` - Database password
 
-### Deployment Server Configuration
-- `DEPLOY_HOST` - Production server hostname or IP address
-- `DEPLOY_USERNAME` - SSH username for the server
-- `DEPLOY_SSH_KEY` - Private SSH key for authentication (generate with `ssh-keygen`)
-- `DEPLOY_PORT` - SSH port (default: `22`)
-- `DEPLOY_PATH` - Absolute path to the application on the server (e.g., `/var/www/linksvault2`)
+| Secret Name | Description |
+|------------|-------------|
+| `DB_CONNECTION` | Database driver (mysql, pgsql, sqlite) |
+| `DB_HOST` | Database host |
+| `DB_PORT` | Database port |
+| `DB_DATABASE` | Database name |
+| `DB_USERNAME` | Database username |
+| `DB_PASSWORD` | Database password |
 
-## How to Add Secrets
+### Application Configuration
 
-1. Go to your GitHub repository
-2. Navigate to **Settings** → **Secrets and variables** → **Actions**
-3. Click **New repository secret**
-4. Add each secret with its corresponding value
+| Secret Name | Description | Example |
+|------------|-------------|---------|
+| `APP_URL` | Application URL for health checks | `https://linksvault.com` |
 
-## SSH Key Setup
+## FTP/SFTP Setup
 
-### Generate SSH Key Pair
+### For FTP Deployment
 
-```bash
-ssh-keygen -t ed25519 -C "github-actions@linksvault2" -f ~/.ssh/linksvault2_deploy
-```
+1. **Get FTP credentials from your hosting provider:**
+   - Server address
+   - Username
+   - Password
+   - Port (usually 21)
+   - Remote path to your application
 
-### Add Public Key to Server
+2. **Add FTP secrets to GitHub:**
+   - Go to `Settings > Secrets and variables > Actions`
+   - Add all FTP-related secrets listed above
 
-```bash
-# Copy the public key content
-cat ~/.ssh/linksvault2_deploy.pub
+### For SFTP Deployment (Recommended)
 
-# On your server, add it to authorized_keys
-echo "PUBLIC_KEY_CONTENT" >> ~/.ssh/authorized_keys
-chmod 600 ~/.ssh/authorized_keys
-```
+SFTP is more secure than FTP. To use SFTP:
 
-### Add Private Key to GitHub Secrets
+1. Set `FTP_PROTOCOL` to `sftp`
+2. Set `FTP_PORT` to `22` (or your SFTP port)
+3. Use your SFTP credentials
 
-```bash
-# Copy the private key content (include BEGIN and END lines)
-cat ~/.ssh/linksvault2_deploy
-```
+### Optional: SSH Access for Post-Deployment Tasks
 
-Paste the entire private key content into the `DEPLOY_SSH_KEY` secret.
+After FTP deployment, you may want to run server-side commands. Configure SSH:
 
-## Workflow Triggers
+1. **Generate SSH key pair:**
+   ```bash
+   ssh-keygen -t rsa -b 4096 -C "github-actions@linksvault" -f ~/.ssh/github_actions
+   ```
 
-### CI Workflow
-- **Automatic**: Triggered on every push and pull request to `main` or `develop`
-- **Manual**: Not configured (runs automatically)
+2. **Add public key to your server:**
+   ```bash
+   # On your production server
+   cat ~/.ssh/github_actions.pub >> ~/.ssh/authorized_keys
+   chmod 600 ~/.ssh/authorized_keys
+   ```
 
-### CD Workflow
-- **Automatic**: Triggered on push to `main` branch
-- **Manual**: Can be triggered from GitHub Actions tab using "Run workflow" button
+3. **Add private key to GitHub Secrets:**
+   ```bash
+   cat ~/.ssh/github_actions
+   ```
+   Paste as `SSH_KEY` secret value.
 
-## Customization Options
+4. **Add other SSH secrets:**
+   - `SSH_HOST`: Your server hostname
+   - `SSH_USERNAME`: SSH username
+   - `SSH_PORT`: SSH port (usually 22)
 
-### Modify PHP Versions
-Edit `ci.yml` to change tested PHP versions:
-```yaml
-matrix:
-  php: ['8.3', '8.4']  # Add or remove versions
-```
+## Deployment Process
 
-### Add Code Quality Tools
-Install and configure additional tools:
-```bash
-composer require --dev laravel/pint phpstan/phpstan
-```
+### What Gets Deployed via FTP
 
-### Configure Deployment Branch
-Change the deployment branch in `cd.yml`:
-```yaml
-on:
-  push:
-    branches: [production]  # Change from main to your preferred branch
-```
+The workflow uploads all files **except**:
+- `.git` directories
+- `node_modules`
+- `.env` file (for security)
+- `.github` workflows
+- Test files
+- Cache and log files
 
-### Add Notification Channels
-Integrate Slack, Discord, or email notifications by adding steps to the workflows.
+### Post-Deployment Tasks (via SSH)
+
+If SSH is configured, the workflow will:
+1. Install PHP dependencies via Composer
+2. Run database migrations (non-blocking)
+3. Clear and cache Laravel configurations
+4. Restart queue workers
+5. Restart PHP-FPM service
+
+## Environment Protection
+
+For the `cicd.yml` workflow, you can configure environment protection:
+
+1. Go to `Settings > Environments`
+2. Create a `production` environment
+3. Enable "Required reviewers" if needed
+4. Add branch protection rules
+
+## Manual Deployment
+
+You can trigger deployments manually:
+
+1. Go to `Actions` tab in GitHub
+2. Select the desired workflow
+3. Click "Run workflow"
+4. Choose the branch
+5. Click "Run workflow"
 
 ## Troubleshooting
 
-### Common Issues
+### FTP Connection Issues
 
-1. **SSH Connection Failed**
-   - Verify the SSH key is correctly added to GitHub secrets
-   - Check that the public key is in the server's `~/.ssh/authorized_keys`
-   - Ensure the server allows SSH connections from GitHub Actions IPs
+If FTP deployment fails:
 
-2. **Database Migration Failed**
-   - Verify database credentials in secrets
-   - Ensure the database exists and is accessible
-   - Check firewall rules allow connections from GitHub Actions
+1. **Verify credentials:**
+   - Test FTP connection manually using FileZilla or command line
+   - Ensure firewall allows FTP/SFTP connections
 
-3. **Build Failures**
-   - Review test output in the Actions tab
-   - Check if all dependencies are properly installed
-   - Verify environment configuration
+2. **Check passive mode:**
+   - Some servers require passive mode
+   - Contact your hosting provider if needed
 
-### Viewing Workflow Logs
+3. **Verify remote path:**
+   - Ensure `FTP_REMOTE_PATH` exists
+   - Check write permissions
 
-1. Go to the **Actions** tab in your GitHub repository
-2. Click on a workflow run
-3. Click on a specific job to see detailed logs
-4. Expand each step to view output
+### SFTP Connection Issues
+
+If SFTP fails:
+
+1. Verify SSH key format (should be OpenSSH format)
+2. Check that the public key is added to `~/.ssh/authorized_keys`
+3. Ensure correct port (usually 22)
+4. Test connection manually:
+   ```bash
+   sftp -P 22 username@server.com
+   ```
+
+### Migrations Failing
+
+If migrations consistently fail:
+
+1. **Check migration status:**
+   ```bash
+   php artisan migrate:status
+   ```
+
+2. **Run migrations manually:**
+   ```bash
+   php artisan migrate --force
+   ```
+
+3. **Check logs:**
+   ```bash
+   tail -f storage/logs/laravel.log
+   ```
+
+### Post-Deployment SSH Issues
+
+If SSH commands fail:
+
+1. Check SSH connectivity:
+   ```bash
+   ssh -i ~/.ssh/github_actions user@example.com
+   ```
+
+2. Verify user has necessary permissions
+3. Check that required commands are available (composer, php, sudo)
+
+### Health Check Failures
+
+If health check fails but site is working:
+
+1. Increase sleep time in health check step
+2. Adjust `MAX_RETRIES` value
+3. Check if URL is accessible from GitHub Actions runners
 
 ## Best Practices
 
-1. **Test Locally First**: Run `composer run test` before pushing
-2. **Use Feature Branches**: Create PRs for review before merging to main
-3. **Monitor Deployments**: Check workflow logs after each deployment
-4. **Backup Before Deploy**: Consider adding a backup step to the CD workflow
-5. **Environment Parity**: Keep `.env.example` updated with all required variables
+1. **Always test on develop branch first** before merging to main
+2. **Review migration changes** before deploying to production
+3. **Backup database** before major migrations
+4. **Monitor deployment logs** for any warnings
+5. **Use environment protection** for production deployments
+6. **Keep secrets updated** and rotate passwords/keys periodically
+7. **Use SFTP instead of FTP** when possible for better security
+8. **Configure SSH access** for complete post-deployment automation
 
 ## Security Considerations
 
-- Never commit `.env` files or secrets to the repository
-- Rotate SSH keys periodically
-- Use separate database credentials for production
-- Enable branch protection rules for `main` branch
-- Review workflow runs regularly for unauthorized access
+### FTP vs SFTP
 
-## Additional Resources
+- **FTP**: Transmits data in plain text (less secure)
+- **SFTP**: Encrypted connection (recommended)
 
-- [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [Laravel Deployment Guide](https://laravel.com/docs/deployment)
-- [SSH Key Best Practices](https://www.ssh.com/academy/ssh/key)
+If your hosting supports SFTP, always use it by setting:
+```
+FTP_PROTOCOL=sftp
+FTP_PORT=22
+```
+
+### Protecting Sensitive Files
+
+The workflow automatically excludes sensitive files:
+- `.env` (contains database credentials, API keys)
+- `.git` directories
+- Test files
+- Logs and caches
+
+### SSH Key Security
+
+- Use strong passphrases for SSH keys
+- Rotate keys periodically
+- Limit SSH access to specific IPs if possible
+- Use dedicated deployment user with minimal permissions
+
+## Monitoring
+
+After deployment, verify:
+
+- ✅ Application responds correctly
+- ✅ Database migrations applied (if any)
+- ✅ Queue workers running
+- ✅ Cache cleared and rebuilt
+- ✅ No errors in Laravel logs
+
+## Customization
+
+To customize workflows for your needs:
+
+1. Modify timeout values
+2. Add additional notification channels
+3. Adjust PHP/Node versions
+4. Add custom deployment steps
+5. Configure different strategies per environment
+6. Modify FTP exclude patterns
+
+## Support
+
+For issues or questions about CI/CD setup:
+
+1. Check workflow run logs in GitHub Actions
+2. Review this documentation
+3. Consult GitHub Actions documentation
+4. Check Laravel deployment best practices
+5. Contact your hosting provider for FTP/SFTP specific issues

@@ -272,8 +272,10 @@ class ContentDetectionService
     protected function extractYouTubeMetadata(string $url): array
     {
         $videoId = $this->extractYouTubeVideoId($url);
+        $metaData = (new WebPageMetadataService())->fetchMetadata($url);
+        $metaData['video_id'] = $videoId ?? null;
 
-        return $videoId ? ['video_id' => $videoId] : [];
+        return $metaData;
     }
 
     /**
@@ -284,8 +286,9 @@ class ContentDetectionService
     protected function extractDriveMetadata(string $url): array
     {
         $isShared = str_contains($url, '/file/d/') || str_contains($url, 'usp=sharing');
-
-        return ['shared' => $isShared];
+        $metaData = (new WebPageMetadataService())->fetchMetadata($url);
+        $metaData['shared'] = $isShared;
+        return $metaData;
     }
 
     /**
@@ -296,7 +299,7 @@ class ContentDetectionService
     protected function extractArticleMetadata(string $url): array
     {
         // Basic metadata - would be enriched by embed/embed package
-        return [];
+        return (new WebPageMetadataService())->fetchMetadata($url);
     }
 
     /**
@@ -306,7 +309,9 @@ class ContentDetectionService
      */
     protected function extractPdfMetadata(string $url): array
     {
-        return ['mime_type' => 'application/pdf'];
+        $metaData = (new WebPageMetadataService())->fetchMetadata($url);
+        $metaData['mime_type'] = 'application/pdf';
+        return $metaData;
     }
 
     /**
@@ -316,6 +321,7 @@ class ContentDetectionService
      */
     protected function extractImageMetadata(string $url): array
     {
+        $metaData = (new WebPageMetadataService())->fetchMetadata($url);
         $ext = pathinfo(parse_url($url, PHP_URL_PATH) ?? '', PATHINFO_EXTENSION);
         $mimeTypes = [
             'jpg' => 'image/jpeg',
@@ -328,9 +334,9 @@ class ContentDetectionService
             'ico' => 'image/x-icon',
         ];
 
-        return isset($mimeTypes[$ext])
-            ? ['mime_type' => $mimeTypes[$ext]]
-            : [];
+        $metaData['mime_type'] = $mimeTypes[$ext];
+        
+        return $metaData;
     }
 
     /**

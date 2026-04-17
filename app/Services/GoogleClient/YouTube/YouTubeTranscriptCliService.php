@@ -2,12 +2,22 @@
 
 namespace App\Services\GoogleClient\YouTube;
 
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class YouTubeTranscriptCliService
 {
+
+    public static function python(){
+        if(App::isLocal()){
+            return "python";
+        }
+
+        return "/home/htesbanzny/miniconda3/bin/python";
+    }
+
     /**
      * Récupérer la transcription en utilisant la commande CLI native
      * 
@@ -134,7 +144,7 @@ PYTHON;
         
         file_put_contents($wrapperScript, $wrapperCode);
         
-        $process = Process::run("python {$wrapperScript} {$videoId} {$languagesStr}");
+        $process = Process::run(self::python() . " {$wrapperScript} {$videoId} {$languagesStr}");
         $jsonOutput = $process->output();
         
         @unlink($wrapperScript);
@@ -281,7 +291,7 @@ PYTHON;
             file_put_contents($parserScript, $parserCode);
             
             // Exécuter le parser
-            $process = Process::run("python {$parserScript} {$tempInputFile}");
+            $process = Process::run(self::python() . " {$parserScript} {$tempInputFile}");
             $jsonOutput = $process->output();
             
             // Nettoyer les fichiers temporaires
@@ -393,9 +403,9 @@ PYTHON;
     {
         // Pour lister les langues, on peut essayer d'appeler sans --languages
         // ou utiliser l'ancien script Python
-        $command = "python " . storage_path('app/scripts/get_transcript.py') . " {$videoId} list 2>&1";
+        $command = self::python() . " " . storage_path('app/scripts/get_transcript.py') . " {$videoId} list 2>&1";
         
-        $output = shell_exec($command);
+        $output = Process::run($command)->output();
         
         if ($output) {
             $result = json_decode($output, true);

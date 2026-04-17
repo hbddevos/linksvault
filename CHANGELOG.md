@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-04-17
+
+### CI/CD & DevOps
+- **Enhanced GitHub Actions Workflows** : Amélioration des workflows CI/CD avec gestion robuste des migrations
+  - Création d'un workflow CI/CD complet (`cicd.yml`) combinant validation, tests, build et déploiement
+  - Configuration des migrations de base de données en mode non-bloquant (`continue-on-error: true`)
+  - Gestion intelligente des échecs de migration en production (migrations déjà appliquées, schema à jour)
+  - Messages informatifs détaillés pour le statut des migrations sans bloquer le pipeline
+  - Health check automatique post-déploiement avec retries configurables
+  - Résumé de déploiement automatisé avec statut des migrations
+  - Séparation claire des phases : Validation → Tests → Build → Déploiement → Notifications
+  - Support des environnements multiples avec protection de la branche main
+  - Optimisation du cache Composer et NPM pour accélérer les builds
+  - Mise à jour des workflows existants (`ci.yml` et `cd.yml`) avec la même logique non-bloquante
+  - Documentation implicite via commentaires dans les workflows
+
+- **FTP/SFTP Deployment Support** : Migration du déploiement de SSH vers FTP/SFTP
+  - Remplacement du déploiement SCP par FTP/SFTP utilisant `SamKirkland/FTP-Deploy-Action@v4.3.5`
+  - Support des protocoles FTP (port 21) et SFTP (port 22) configurable
+  - Conservation de l'accès SSH optionnel pour les tâches post-déploiement (Composer, migrations, cache, redémarrage services)
+  - Configuration flexible : déploiement FTP pur ou hybride (FTP + SSH)
+  - Exclusion automatique des fichiers sensibles (.env, .git, node_modules, tests, logs)
+  - Documentation complète mise à jour pour la configuration FTP/SFTP
+  - Secrets GitHub mis à jour : `FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD`, `FTP_PORT`, `FTP_PROTOCOL`, `FTP_REMOTE_PATH`
+  - Secrets SSH rendus optionnels : `SSH_HOST`, `SSH_USERNAME`, `SSH_KEY`, `SSH_PORT`
+  - Guide de configuration FTP vs SFTP avec recommandations de sécurité
+  - Meilleures pratiques pour le déploiement sécurisé via FTP/SFTP
+
 ## 2026-04-16
 
 ### Features

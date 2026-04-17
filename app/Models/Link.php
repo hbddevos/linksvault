@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Link extends Model
 {
-    use AddTeamId, AddUserId;
+    use AddUserId;
 
     protected $fillable = [
         'user_id',

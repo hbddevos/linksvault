@@ -9,10 +9,12 @@ use App\Enums\ContentType;
 use App\Models\Category;
 use App\Models\Tag;
 use App\Services\ContentDetectionService;
+use App\Services\WebPageMetadataService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
@@ -52,12 +54,14 @@ class LinkForm
                                 return;
                             }
 
-                            $contentDetection = app(ContentDetectionService::class);
+                            $contentDetection = new ContentDetectionService();
                             $analysis = $contentDetection->analyze($state);
                             $type = $analysis['type'];
 
                             // Auto-detect content type
                             $set('content_type', $type);
+                            $set('favicon_url', $analysis['metadata']['favicon']);
+                            $set('thumbnail_url', $analysis['metadata']['image'] ?? 'nom disponible');
 
                             // Auto-generate title if empty
                             $title = $get('title');
@@ -67,6 +71,9 @@ class LinkForm
 
                             if($type === 'youtube') {
                                 $set('description', $contentDetection->getYoutubeVideoDescription($state));
+                            }else{
+                                $set('title', $analysis['metadata']['title']);
+                                $set('description', $analysis['metadata']['description']);
                             }
 
                             // Auto-fill metadata
@@ -221,25 +228,18 @@ class LinkForm
                     TextInput::make('objective')
                         ->label(__('Objective'))
                         ->maxLength(255),
+                    TextInput::make('thumbnail_url')
+                        ->label(__('Thumbnail'))
+                        // ->hiddenOn('create')
+                        ->readOnly(),
+                    TextInput::make('favicon_url')
+                        ->label(__('Favicon'))
+                        // ->hiddenOn('create')
+                        ->readOnly(),
                 ]),
-            Select::make('tags')
+            TagsInput::make('tags')
                 ->label(__('Tags'))
-                ->relationship('tags', 'name')
-                ->multiple()
-                ->preload()
-                ->searchable()
-                ->createOptionForm([
-                    TextInput::make('name')
-                        ->label(__('Name'))
-                        ->required()
-                        ->maxLength(255),
-                    TextInput::make('slug')
-                        ->label(__('Slug'))
-                        ->maxLength(255),
-                ])
-                ->createOptionUsing(function (array $data): int {
-                    return Tag::create($data)->id;
-                }),
+                ->default('[]'),
             Grid::make(2)
                 ->components([
                     Toggle::make('is_favorite')
@@ -323,7 +323,12 @@ class LinkForm
                                     $set('ai_summary', "❌ **Erreur lors de la génération du résumé**\n\n" . $e->getMessage());
                                 }
                             } else {
-                                $set('ai_summary', "ℹ️ Pas de résumé disponible pour ce type de lien");
+                                  $agent = (new YoutubeTranscriptSummary())->prompt(
+                                        "Analyse et génère le résumé en français de cette description du lien : {$get('description')}. N'ajoute rien de supperflu, juste ton avis sur la description du line fournis.",
+                                        model: 'openai/gpt-oss-120b',
+                                        provider: Lab::Groq
+                                    );
+                                $set('ai_summary', $agent->text);
                             }
 
                         })

@@ -4,6 +4,7 @@ use App\Ai\Agents\YoutubeTranscriptSummary;
 use App\Http\Controllers\AcceptInvitationController;
 use App\Http\Controllers\GlmController;
 use App\Http\Controllers\LinkShareController;
+use App\Services\WebPageMetadataService;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Route;
 use Laravel\Ai\Enums\Lab;
@@ -34,7 +35,7 @@ Route::get('/', function () {
 
     // dump($answer, $response);
 
-    $process = Process::run("youtube_transcript_api WJL-WFsIpi4 --languages en fr es de");
+    $process = Process::run("youtube_transcript_api ulJTCVm3wXo");
 
     $output = $process->output();
 
@@ -45,6 +46,10 @@ Route::get('/', function () {
     $data = json_decode($json, true);
     $fullText = '';
 
+
+    $webpageData = (new WebPageMetadataService())->fetchMetadata('https://docs.google.com/document/d/11uc-no4tXCTS9QA7USLGFiyIiOAjx6BvEyR7g1EpL0Q/edit?usp=sharing');
+
+    dd($webpageData);
     // foreach ($data[0] as $segment) {
     //     $fullText .= $segment['text'] . ' ';
     // }

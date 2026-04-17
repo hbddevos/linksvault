@@ -63,16 +63,11 @@ class LinkInfolist
                             ->placeholder('—'),
 
                         // Tags - Improved display
-                        RepeatableEntry::make('tags')
+                        TextEntry::make('tags.name')
                             ->label(__('Tags'))
-                            ->schema([
-                                TextEntry::make('name')
-                                    ->badge()
-                                    ->color('info')
-                                    ->icon('heroicon-m-tag'),
-                            ])
-                            ->contained(false)
-                            ->grid(3)
+                            ->badge()
+                            ->color('info')
+                            ->icon('heroicon-m-tag')
                             ->visible(fn ($record) => $record->tags && $record->tags->count() > 0)
                             ->placeholder('—'),
 
@@ -91,6 +86,29 @@ class LinkInfolist
                         TextEntry::make('objective')
                             ->label(__('Objective'))
                             ->placeholder(__('No objective set.')),
+                             // Divider
+                        Group::make([])
+                            ->extraAttributes(['class' => 'border-t border-gray-200 dark:border-gray-700 my-4']),
+
+                        // AI Summary section
+                        Section::make([
+                            Group::make([
+                                TextEntry::make('ai_summary')
+                                    ->label(__('AI Summary'))
+                                    ->markdown()
+                                    ->placeholder(__('No AI summary generated yet.')),
+                            ])->columnSpanFull(),
+                        ])
+                            ->heading(__('AI Summary'))
+                            ->headerActions([
+                                Action::make('regenerate_summary')
+                                    ->label(__('Regenerate'))
+                                    ->icon('heroicon-o-sparkles')
+                                    ->color('primary')
+                                    ->visible(fn ($record) => filled($record->url)),
+                            ])
+                            ->collapsed(fn ($record) => blank($record->ai_summary)),
+
 
                         // Divider
                         Group::make([])

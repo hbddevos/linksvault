@@ -54,7 +54,11 @@ class LinksTable
                     ->formatStateUsing(fn (ContentType $state): string => $state->label())
                     ->color(fn (ContentType $state): string => match ($state) {
                         ContentType::Youtube => 'danger',
-                        ContentType::Drive => 'warning',
+                        ContentType::GoogleDrive => 'warning',
+                        ContentType::GoogleDoc => 'warning',
+                        ContentType::GoogleSlides => 'warning',
+                        ContentType::GoogleSheet => 'warning',
+                        ContentType::GoogleForm => 'warning',
                         ContentType::Article => 'info',
                         ContentType::Pdf => 'gray',
                         ContentType::Image => 'success',
