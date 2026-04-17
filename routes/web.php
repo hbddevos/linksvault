@@ -49,7 +49,7 @@ Route::get('/', function () {
 
     $webpageData = (new WebPageMetadataService())->fetchMetadata('https://docs.google.com/document/d/11uc-no4tXCTS9QA7USLGFiyIiOAjx6BvEyR7g1EpL0Q/edit?usp=sharing');
 
-    dd($webpageData);
+    dump($webpageData);
     // foreach ($data[0] as $segment) {
     //     $fullText .= $segment['text'] . ' ';
     // }
@@ -58,7 +58,7 @@ Route::get('/', function () {
 
     // echo $fullText;
 
-    dd($output, $data);
+    dump($output, $data);
 
     return view('welcome');
     // return $agent->then(function (StreamedAgentResponse $response) {
