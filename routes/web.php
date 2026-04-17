@@ -8,6 +8,9 @@ use App\Services\WebPageMetadataService;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/', function () {
+    return view('welcome');
+});
 // Routes pour GLM API
 Route::prefix('glm')->group(function () {
     Route::post('/chat', [GlmController::class, 'simpleChat'])->name('glm.chat');
@@ -23,7 +26,8 @@ Route::get('/team-invitations/{code}/accept', AcceptInvitationController::class)
     ->middleware(['web', 'signed'])
     ->name('filateams.invitations.accept');
 
-Route::get('/', function () {
+
+Route::get('/test', function () {
 
     // $response = app(GlmService::class)->chatSimple('Hello');
     // $answer = app(GlmService::class)->extractResponse($response);

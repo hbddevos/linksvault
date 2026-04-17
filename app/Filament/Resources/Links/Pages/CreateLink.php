@@ -9,9 +9,10 @@ class CreateLink extends CreateRecord
 {
     protected static string $resource = LinkResource::class;
 
-    // protected function mutateFormDataBeforeCreate(array $data): array
-    // {
-    //     // Clean up tags input
-    //     return $data;
-    // }
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+
+        $data['tags'] = implode(',', $data['tags']);
+        return $data;
+    }
 }
