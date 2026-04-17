@@ -191,7 +191,7 @@ jobs:
       - name: Set deployment outputs
         id: outputs
         run: |
-          echo "url=${{ vars.APP_URL || 'https://ribedu.com' }}" >> $GITHUB_OUTPUT
+          echo "url=${{ secrets.APP_URL || 'https://linksvault2.saeicubetech.com' }}" >> $GITHUB_OUTPUT
           echo "timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
 
   post-deploy:
