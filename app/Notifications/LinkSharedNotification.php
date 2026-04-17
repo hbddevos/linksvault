@@ -4,11 +4,12 @@ namespace App\Notifications;
 
 use App\Models\Link;
 use App\Models\User;
+use Filament\Notifications\Actions\Action;
+use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Filament\Notifications\Notification as FilamentNotification;
 
 class LinkSharedNotification extends Notification implements ShouldQueue
 {
@@ -44,7 +45,7 @@ class LinkSharedNotification extends Notification implements ShouldQueue
             })
             ->action('Voir le lien', route('links.view', $this->link))
             ->line("Titre : {$this->link->title}")
-            ->line("Type : " . ($this->link->content_type?->label() ?? 'Lien web'))
+            ->line('Type : '.($this->link->content_type?->label() ?? 'Lien web'))
             ->salutation('Cordialement, L\'équipe Linksvault2');
     }
 
@@ -78,7 +79,7 @@ class LinkSharedNotification extends Notification implements ShouldQueue
             ->icon('heroicon-o-link')
             ->iconColor('primary')
             ->actions([
-                \Filament\Notifications\Actions\Action::make('view')
+                Action::make('view')
                     ->label('Voir le lien')
                     ->url(route('links.view', $this->link))
                     ->markAsRead(),

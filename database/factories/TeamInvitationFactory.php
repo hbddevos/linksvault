@@ -21,9 +21,9 @@ class TeamInvitationFactory extends Factory
     public function definition(): array
     {
         return [
-            'email'       => fake()->unique()->safeEmail(),
-            'role'        => TeamRole::Member,
-            'expires_at'  => null,
+            'email' => fake()->unique()->safeEmail(),
+            'role' => TeamRole::Member,
+            'expires_at' => null,
             'accepted_at' => null,
         ];
     }

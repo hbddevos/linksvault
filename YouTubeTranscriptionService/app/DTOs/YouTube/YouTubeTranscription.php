@@ -16,7 +16,7 @@ use IteratorAggregate;
 final readonly class YouTubeTranscription implements Countable, IteratorAggregate
 {
     /**
-     * @param array<int, YouTubeTranscriptSegment> $segments
+     * @param  array<int, YouTubeTranscriptSegment>  $segments
      */
     public function __construct(
         public array $segments,
@@ -25,12 +25,12 @@ final readonly class YouTubeTranscription implements Countable, IteratorAggregat
     /**
      * Create an instance from raw Python output (JSON-like array of dictionaries).
      *
-     * @param array<int, array{duration?: float|int, start?: float|int, text?: string}> $data
+     * @param  array<int, array{duration?: float|int, start?: float|int, text?: string}>  $data
      */
     public static function fromRawPythonOutput(array $data): self
     {
         $segments = array_map(
-            fn(array $segment) => YouTubeTranscriptSegment::fromArray($segment),
+            fn (array $segment) => YouTubeTranscriptSegment::fromArray($segment),
             $data
         );
 
@@ -44,7 +44,7 @@ final readonly class YouTubeTranscription implements Countable, IteratorAggregat
     {
         $decoded = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 
-        if (!is_array($decoded)) {
+        if (! is_array($decoded)) {
             throw new \InvalidArgumentException('JSON must decode to an array.');
         }
 
@@ -59,7 +59,7 @@ final readonly class YouTubeTranscription implements Countable, IteratorAggregat
     public function getTextWithTimestamps(): string
     {
         $lines = array_map(
-            fn(YouTubeTranscriptSegment $segment) => sprintf(
+            fn (YouTubeTranscriptSegment $segment) => sprintf(
                 '[%s] %s',
                 $segment->getFormattedStartTime(),
                 trim($segment->text)
@@ -76,7 +76,7 @@ final readonly class YouTubeTranscription implements Countable, IteratorAggregat
     public function getPlainText(): string
     {
         return implode(' ', array_map(
-            fn(YouTubeTranscriptSegment $segment) => trim($segment->text),
+            fn (YouTubeTranscriptSegment $segment) => trim($segment->text),
             $this->segments
         ));
     }
@@ -84,7 +84,7 @@ final readonly class YouTubeTranscription implements Countable, IteratorAggregat
     /**
      * Get segments grouped by time ranges.
      *
-     * @param float $intervalSeconds Group segments within this time interval (default: 30 seconds)
+     * @param  float  $intervalSeconds  Group segments within this time interval (default: 30 seconds)
      * @return array<int, array{start: float, end: float, text: string}>
      */
     public function getSegmentsByInterval(float $intervalSeconds = 30.0): array
@@ -151,7 +151,7 @@ final readonly class YouTubeTranscription implements Countable, IteratorAggregat
     public function toArray(): array
     {
         return array_map(
-            fn(YouTubeTranscriptSegment $segment) => $segment->toArray(),
+            fn (YouTubeTranscriptSegment $segment) => $segment->toArray(),
             $this->segments
         );
     }
@@ -199,8 +199,7 @@ final readonly class YouTubeTranscription implements Countable, IteratorAggregat
     {
         return array_values(array_filter(
             $this->segments,
-            fn(YouTubeTranscriptSegment $segment) =>
-                $segment->start >= $startTime && $segment->start <= $endTime
+            fn (YouTubeTranscriptSegment $segment) => $segment->start >= $startTime && $segment->start <= $endTime
         ));
     }
 }

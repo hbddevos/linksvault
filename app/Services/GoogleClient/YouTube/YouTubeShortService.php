@@ -2,23 +2,25 @@
 
 namespace App\Services\GoogleClient\YouTube;
 
-use Google_Service_YouTube;
 use Google_Client;
+use Google_Service_YouTube;
 
 class YouTubeShortService
 {
     protected Google_Service_YouTube $youtube;
+
     protected Google_Client $client;
+
     protected YouTubeVideoService $videoService;
 
     public const SHORT_MAX_DURATION = 60; // 60 secondes max pour un Short
 
     public function __construct()
     {
-        $this->client = new Google_Client();
+        $this->client = new Google_Client;
         $this->client->setDeveloperKey(config('google.api_key'));
         $this->youtube = new Google_Service_YouTube($this->client);
-        $this->videoService = new YouTubeVideoService();
+        $this->videoService = new YouTubeVideoService;
     }
 
     /**
@@ -28,12 +30,12 @@ class YouTubeShortService
     {
         $video = $this->videoService->getVideoInfo($shortId);
 
-        if (!$video) {
+        if (! $video) {
             return null;
         }
 
         // Vérifier si c'est vraiment un Short
-        if (!$this->isShortVideo($video)) {
+        if (! $this->isShortVideo($video)) {
             return null;
         }
 
@@ -50,12 +52,12 @@ class YouTubeShortService
      */
     public function isShortVideo(array $video): bool
     {
-        if (!isset($video['duration'])) {
+        if (! isset($video['duration'])) {
             return false;
         }
 
         $durationSeconds = $this->videoService->parseDuration($video['duration']);
-        
+
         // Les Shorts YouTube ont une durée <= 60 secondes
         return $durationSeconds <= self::SHORT_MAX_DURATION;
     }
@@ -80,11 +82,11 @@ class YouTubeShortService
             $shorts = [];
             foreach ($searchResponse->items as $item) {
                 $videoId = $item['id']['videoId'] ?? null;
-                
+
                 if ($videoId) {
                     // Récupérer les détails complets
                     $videoDetails = $this->videoService->getVideoInfo($videoId);
-                    
+
                     if ($videoDetails) {
                         $shorts[] = array_merge($videoDetails, [
                             'is_short' => true,
@@ -98,7 +100,8 @@ class YouTubeShortService
             return $shorts;
 
         } catch (\Exception $e) {
-            \Log::error('YouTube Shorts Error: ' . $e->getMessage());
+            \Log::error('YouTube Shorts Error: '.$e->getMessage());
+
             return [];
         }
     }
@@ -122,7 +125,7 @@ class YouTubeShortService
             $shorts = [];
             foreach ($searchResponse->items as $item) {
                 $videoId = $item['id']['videoId'] ?? null;
-                
+
                 if ($videoId) {
                     $shorts[] = [
                         'video_id' => $videoId,
@@ -142,7 +145,8 @@ class YouTubeShortService
             return $shorts;
 
         } catch (\Exception $e) {
-            \Log::error('YouTube Shorts Search Error: ' . $e->getMessage());
+            \Log::error('YouTube Shorts Search Error: '.$e->getMessage());
+
             return [];
         }
     }
@@ -152,11 +156,12 @@ class YouTubeShortService
      */
     public function getPlaylistShorts(string $playlistId): array
     {
-        $playlistService = new YouTubePlaylistService();
+        $playlistService = new YouTubePlaylistService;
         $allVideos = $playlistService->getPlaylistItems($playlistId);
 
         $shorts = array_filter($allVideos, function ($video) {
             $videoDetails = $this->videoService->getVideoInfo($video['video_id']);
+
             return $videoDetails && $this->isShortVideo($videoDetails);
         });
 
@@ -204,7 +209,7 @@ class YouTubeShortService
     {
         $shortId = $this->extractShortId($url);
 
-        if (!$shortId) {
+        if (! $shortId) {
             return null;
         }
 

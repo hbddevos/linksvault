@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace Tests\Unit\DTOs;
 
 use App\DTOs\YouTube\YouTubeTranscription;
-use App\DTOs\YouTube\YouTubeTranscriptSegment;
 use PHPUnit\Framework\TestCase;
 
 class YouTubeTranscriptionTest extends TestCase
 {
-    public function testFromJsonParsesValidJson(): void
+    public function test_from_json_parses_valid_json(): void
     {
         $json = '[
             {"duration": 5.04, "start": 1.92, "text": "Hello World"},
@@ -23,7 +22,7 @@ class YouTubeTranscriptionTest extends TestCase
         $this->assertFalse($transcription->isEmpty());
     }
 
-    public function testFromRawPythonOutputHandlesCorrectData(): void
+    public function test_from_raw_python_output_handles_correct_data(): void
     {
         $rawData = [
             ['duration' => 5.04, 'start' => 1.92, 'text' => 'Hello'],
@@ -37,7 +36,7 @@ class YouTubeTranscriptionTest extends TestCase
         $this->assertEquals('World', $transcription->getSegment(1)->text);
     }
 
-    public function testGetPlainTextConcatenatesAllText(): void
+    public function test_get_plain_text_concatenates_all_text(): void
     {
         $rawData = [
             ['duration' => 1.0, 'start' => 0.0, 'text' => 'First'],
@@ -50,7 +49,7 @@ class YouTubeTranscriptionTest extends TestCase
         $this->assertEquals('First Second Third', $transcription->getPlainText());
     }
 
-    public function testGetTextWithTimestampsIncludesAllSegments(): void
+    public function test_get_text_with_timestamps_includes_all_segments(): void
     {
         $rawData = [
             ['duration' => 5.04, 'start' => 1.92, 'text' => 'Hello'],
@@ -64,7 +63,7 @@ class YouTubeTranscriptionTest extends TestCase
         $this->assertStringContainsString('[00:00:06.960] World', $textWithTimestamps);
     }
 
-    public function testGetTotalDurationReturnsLastSegmentEnd(): void
+    public function test_get_total_duration_returns_last_segment_end(): void
     {
         $rawData = [
             ['duration' => 5.04, 'start' => 1.92, 'text' => 'First'],
@@ -77,14 +76,14 @@ class YouTubeTranscriptionTest extends TestCase
         $this->assertEqualsWithDelta(11.44, $transcription->getTotalDuration(), 0.01);
     }
 
-    public function testGetTotalDurationReturnsZeroForEmpty(): void
+    public function test_get_total_duration_returns_zero_for_empty(): void
     {
         $transcription = YouTubeTranscription::fromRawPythonOutput([]);
 
         $this->assertEquals(0.0, $transcription->getTotalDuration());
     }
 
-    public function testGetSegmentsInRangeFiltersCorrectly(): void
+    public function test_get_segments_in_range_filters_correctly(): void
     {
         $rawData = [
             ['duration' => 5.0, 'start' => 0.0, 'text' => 'Zero'],
@@ -102,7 +101,7 @@ class YouTubeTranscriptionTest extends TestCase
         $this->assertEquals('Ten', $filtered[1]->text);
     }
 
-    public function testIteratorCanBeUsedInForeach(): void
+    public function test_iterator_can_be_used_in_foreach(): void
     {
         $rawData = [
             ['duration' => 1.0, 'start' => 0.0, 'text' => 'A'],
@@ -119,7 +118,7 @@ class YouTubeTranscriptionTest extends TestCase
         $this->assertEquals(['A', 'B'], $texts);
     }
 
-    public function testToArrayReturnsAllSegments(): void
+    public function test_to_array_returns_all_segments(): void
     {
         $rawData = [
             ['duration' => 1.0, 'start' => 0.0, 'text' => 'Test'],
@@ -134,7 +133,7 @@ class YouTubeTranscriptionTest extends TestCase
         $this->assertEquals('Test', $array[0]['text']);
     }
 
-    public function testCountableInterface(): void
+    public function test_countable_interface(): void
     {
         $rawData = [
             ['duration' => 1.0, 'start' => 0.0, 'text' => 'One'],
@@ -147,14 +146,14 @@ class YouTubeTranscriptionTest extends TestCase
         $this->assertCount(3, $transcription);
     }
 
-    public function testFromJsonThrowsOnInvalidJson(): void
+    public function test_from_json_throws_on_invalid_json(): void
     {
         $this->expectException(\JsonException::class);
 
         YouTubeTranscription::fromJson('invalid json');
     }
 
-    public function testFromJsonThrowsOnNonArray(): void
+    public function test_from_json_throws_on_non_array(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('JSON must decode to an array');

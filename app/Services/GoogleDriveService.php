@@ -34,7 +34,7 @@ class GoogleDriveService
      */
     public function getClient(?string $accessToken = null): Client
     {
-        $client = new Client();
+        $client = new Client;
         $client->setClientId(config('services.google.client_id'));
         $client->setClientSecret(config('services.google.client_secret'));
         $client->setRedirectUri(route('google.drive.callback'));

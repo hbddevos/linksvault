@@ -2,17 +2,18 @@
 
 namespace App\Services\GoogleClient\YouTube;
 
-use Google_Service_YouTube;
 use Google_Client;
+use Google_Service_YouTube;
 
 class YouTubePlaylistService
 {
     protected Google_Service_YouTube $youtube;
+
     protected Google_Client $client;
 
     public function __construct()
     {
-        $this->client = new Google_Client();
+        $this->client = new Google_Client;
         $this->client->setDeveloperKey(config('google.api_key'));
         $this->youtube = new Google_Service_YouTube($this->client);
     }
@@ -27,7 +28,7 @@ class YouTubePlaylistService
                 'snippet,status,contentDetails,localization,player',
                 [
                     'id' => $playlistId,
-                    'maxResults' => 1
+                    'maxResults' => 1,
                 ]
             );
 
@@ -38,7 +39,8 @@ class YouTubePlaylistService
             return $this->formatPlaylistData($response->items[0]);
 
         } catch (\Exception $e) {
-            \Log::error('YouTube Playlist API Error: ' . $e->getMessage());
+            \Log::error('YouTube Playlist API Error: '.$e->getMessage());
+
             return null;
         }
     }
@@ -56,7 +58,7 @@ class YouTubePlaylistService
                 $params = [
                     'playlistId' => $playlistId,
                     'maxResults' => min($maxResults, 50),
-                    'part' => 'snippet,contentDetails,status'
+                    'part' => 'snippet,contentDetails,status',
                 ];
 
                 if ($nextPageToken) {
@@ -90,7 +92,7 @@ class YouTubePlaylistService
             } while ($nextPageToken && $maxResults > 0);
 
         } catch (\Exception $e) {
-            \Log::error('YouTube Playlist Items Error: ' . $e->getMessage());
+            \Log::error('YouTube Playlist Items Error: '.$e->getMessage());
         }
 
         return $items;
@@ -107,7 +109,7 @@ class YouTubePlaylistService
                 [
                     'channelId' => $channelId,
                     'maxResults' => $maxResults,
-                    'type' => 'any' // 'any' ou 'history' pour watch_history
+                    'type' => 'any', // 'any' ou 'history' pour watch_history
                 ]
             );
 
@@ -128,7 +130,8 @@ class YouTubePlaylistService
             }, $response->items);
 
         } catch (\Exception $e) {
-            \Log::error('YouTube Channel Playlists Error: ' . $e->getMessage());
+            \Log::error('YouTube Channel Playlists Error: '.$e->getMessage());
+
             return [];
         }
     }
@@ -140,7 +143,7 @@ class YouTubePlaylistService
     {
         $playlist = $this->getPlaylistInfo($playlistId);
 
-        if (!$playlist) {
+        if (! $playlist) {
             return null;
         }
 
@@ -167,12 +170,12 @@ class YouTubePlaylistService
             'channel_id' => $snippet['channelId'] ?? '',
             'channel_title' => $snippet['channelTitle'] ?? '',
             'tags' => $snippet['tags'] ?? [],
-            
+
             'item_count' => $contentDetails['itemCount'] ?? 0,
-            
+
             'privacy_status' => $status['privacyStatus'] ?? '',
             'kind' => $status['kind'] ?? '',
-            
+
             'thumbnail_default' => $snippet['thumbnails']['default']['url'] ?? '',
             'thumbnail_medium' => $snippet['thumbnails']['medium']['url'] ?? '',
             'thumbnail_high' => $snippet['thumbnails']['high']['url'] ?? '',

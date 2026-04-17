@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '25'
           cache: 'npm'
 
       - name: Cache Composer dependencies
@@ -59,13 +59,13 @@ jobs:
             echo "⚠️ Migrations failed or already up-to-date - continuing deployment"
             echo "This is expected in production when no new migrations are needed"
           fi
-        env:
-          DB_CONNECTION: ${{ secrets.DB_CONNECTION }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DB_DATABASE: ${{ secrets.DB_DATABASE }}
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        # env:
+        #   DB_CONNECTION: ${{ secrets.DB_CONNECTION }}
+        #   DB_HOST: ${{ secrets.DB_HOST }}
+        #   DB_PORT: ${{ secrets.DB_PORT }}
+        #   DB_DATABASE: ${{ secrets.DB_DATABASE }}
+        #   DB_USERNAME: ${{ secrets.DB_USERNAME }}
+        #   DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
       - name: Clear and cache configurations
         run: |
@@ -96,36 +96,36 @@ jobs:
             **/phpunit.xml
             **/README.md
 
-      - name: Execute remote commands via SSH (for post-deployment tasks)
-        if: ${{ secrets.SSH_HOST && secrets.SSH_HOST != '' }}
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            cd ${{ secrets.FTP_REMOTE_PATH }}
+      # - name: Execute remote commands via SSH (for post-deployment tasks)
+      #   if: ${{ secrets.SSH_HOST && secrets.SSH_HOST != '' }}
+      #   uses: appleboy/ssh-action@master
+      #   with:
+      #     host: ${{ secrets.SSH_HOST }}
+      #     username: ${{ secrets.SSH_USERNAME }}
+      #     key: ${{ secrets.SSH_KEY }}
+      #     port: ${{ secrets.SSH_PORT }}
+      #     script: |
+      #       cd ${{ secrets.FTP_REMOTE_PATH }}
             
-            # Install dependencies on server
-            composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader --no-dev
+      #       # Install dependencies on server
+      #       composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader --no-dev
             
-            # Run migrations on server (non-blocking)
-            echo "Running migrations on server..."
-            if php artisan migrate --force; then
-              echo "✅ Server migrations successful"
-            else
-              echo "⚠️ Server migrations failed or not needed - continuing"
-            fi
+      #       # Run migrations on server (non-blocking)
+      #       echo "Running migrations on server..."
+      #       if php artisan migrate --force; then
+      #         echo "✅ Server migrations successful"
+      #       else
+      #         echo "⚠️ Server migrations failed or not needed - continuing"
+      #       fi
             
-            # Optimize application
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-            php artisan queue:restart
+      #       # Optimize application
+      #       php artisan config:cache
+      #       php artisan route:cache
+      #       php artisan view:cache
+      #       php artisan queue:restart
             
-            # Restart PHP-FPM
-            sudo systemctl restart php-fpm || sudo service php-fpm restart || echo "PHP-FPM restart skipped"
+      #       # Restart PHP-FPM
+      #       sudo systemctl restart php-fpm || sudo service php-fpm restart || echo "PHP-FPM restart skipped"
 
       - name: Notify deployment status
         if: always()

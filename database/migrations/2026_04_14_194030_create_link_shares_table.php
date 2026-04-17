@@ -26,7 +26,7 @@ return new class extends Migration
             $table->timestamp('opened_at')->nullable();
             $table->timestamp('clicked_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['sender_user_id', 'created_at']);
             $table->index(['recipient_user_id', 'created_at']);
             $table->index('token');

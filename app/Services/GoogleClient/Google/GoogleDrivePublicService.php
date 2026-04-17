@@ -8,11 +8,12 @@ use Google_Service_Drive;
 class GoogleDrivePublicService
 {
     protected Google_Client $client;
+
     protected Google_Service_Drive $drive;
 
     public function __construct()
     {
-        $this->client = new Google_Client();
+        $this->client = new Google_Client;
         $this->client->setDeveloperKey(config('google.api_key'));
         $this->drive = new Google_Service_Drive($this->client);
     }
@@ -31,7 +32,8 @@ class GoogleDrivePublicService
             return $this->formatFileData($file);
 
         } catch (\Exception $e) {
-            \Log::error('Public File Error: ' . $e->getMessage());
+            \Log::error('Public File Error: '.$e->getMessage());
+
             return null;
         }
     }
@@ -54,22 +56,24 @@ class GoogleDrivePublicService
             'web_view_url' => $file->getWebViewLink(),
             'icon_url' => $file->getIconLink(),
             'has_thumbnail' => $file->getHasThumbnail(),
-            'owners' => array_map(fn($o) => $o->getDisplayName(), $file->getOwners() ?? []),
+            'owners' => array_map(fn ($o) => $o->getDisplayName(), $file->getOwners() ?? []),
         ];
     }
 
     protected function formatBytes(?int $bytes): string
     {
-        if (!$bytes) return 'N/A';
-        
+        if (! $bytes) {
+            return 'N/A';
+        }
+
         $units = ['B', 'KB', 'MB', 'GB'];
         $i = 0;
-        
+
         while ($bytes >= 1024 && $i < count($units) - 1) {
             $bytes /= 1024;
             $i++;
         }
-        
-        return round($bytes, 2) . ' ' . $units[$i];
+
+        return round($bytes, 2).' '.$units[$i];
     }
 }

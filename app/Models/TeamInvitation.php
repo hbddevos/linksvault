@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 
 class TeamInvitation extends Model
 {
-     /** @use HasFactory<TeamInvitationFactory> */
+    /** @use HasFactory<TeamInvitationFactory> */
     use HasFactory;
 
     protected $table = 'team_invitations';
@@ -71,8 +71,8 @@ class TeamInvitation extends Model
     protected function casts(): array
     {
         return [
-            'role'        => config('filateams.enums.role', TeamRole::class),
-            'expires_at'  => 'datetime',
+            'role' => config('filateams.enums.role', TeamRole::class),
+            'expires_at' => 'datetime',
             'accepted_at' => 'datetime',
         ];
     }

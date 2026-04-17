@@ -6,16 +6,16 @@ namespace App\Concerns\TeamConcerns;
 
 use BackedEnum;
 use Filament\Panel;
-use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
-use LaravelDaily\FilaTeams\Models\Team;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
+use LaravelDaily\FilaTeams\Contracts\TeamPermissionContract;
+use LaravelDaily\FilaTeams\Contracts\TeamRoleContract;
 use LaravelDaily\FilaTeams\Facades\FilaTeams;
 use LaravelDaily\FilaTeams\Models\Membership;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use LaravelDaily\FilaTeams\Contracts\TeamRoleContract;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use LaravelDaily\FilaTeams\Contracts\TeamPermissionContract;
+use LaravelDaily\FilaTeams\Models\Team;
 
 trait HasTeams
 {
@@ -82,9 +82,9 @@ trait HasTeams
         return $membership?->role;
     }
 
-    public function hasTeamPermission(Team $team, string | TeamPermissionContract $permission): bool
+    public function hasTeamPermission(Team $team, string|TeamPermissionContract $permission): bool
     {
-        $role  = $this->teamRole($team);
+        $role = $this->teamRole($team);
         $value = $permission instanceof BackedEnum ? $permission->value : $permission;
 
         return $role !== null && $role->hasPermission($value);
@@ -106,7 +106,7 @@ trait HasTeams
     /**
      * @return array<Model>|Collection
      */
-    public function getTenants(Panel $panel): array | Collection
+    public function getTenants(Panel $panel): array|Collection
     {
         return $this->teams;
     }

@@ -13,11 +13,17 @@ use Throwable;
 class YouTubeTranscriptionException extends Exception
 {
     public const int ERROR_VIDEO_NOT_FOUND = 1001;
+
     public const int ERROR_TRANSCRIPT_UNAVAILABLE = 1002;
+
     public const int ERROR_PYTHON_SCRIPT_FAILED = 1003;
+
     public const int ERROR_INVALID_RESPONSE = 1004;
+
     public const int ERROR_NETWORK_ERROR = 1005;
+
     public const int ERROR_NO_TRANSCRIPT = 1006;
+
     public const int ERROR_PARSE_FAILED = 1007;
 
     private const ERROR_MESSAGES = [
@@ -41,6 +47,7 @@ class YouTubeTranscriptionException extends Exception
     ];
 
     private ?string $rawOutput;
+
     private ?string $command;
 
     public function __construct(

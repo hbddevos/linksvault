@@ -19,7 +19,7 @@ class LinkShareController extends Controller
                 ->where('token', $token)
                 ->first();
 
-            if (!$share) {
+            if (! $share) {
                 abort(404, 'Lien de partage introuvable ou expiré.');
             }
 
@@ -36,7 +36,7 @@ class LinkShareController extends Controller
             }
 
             // Marquer comme ouvert (si pas déjà fait)
-            if (!$share->opened_at) {
+            if (! $share->opened_at) {
                 $share->markAsOpened();
             }
 

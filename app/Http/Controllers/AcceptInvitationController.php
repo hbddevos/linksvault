@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Filament\Facades\Filament;
-use Illuminate\Routing\Controller;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use LaravelDaily\FilaTeams\Models\Membership;
-use Symfony\Component\HttpFoundation\Response;
 use LaravelDaily\FilaTeams\Models\TeamInvitation;
+use Symfony\Component\HttpFoundation\Response;
 
 class AcceptInvitationController extends Controller
 {

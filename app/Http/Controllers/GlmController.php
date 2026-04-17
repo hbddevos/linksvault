@@ -70,7 +70,7 @@ class GlmController extends Controller
                     callback: function ($chunk) {
                         if (isset($chunk['choices'][0]['delta']['content'])) {
                             $content = $chunk['choices'][0]['delta']['content'];
-                            echo "data: " . json_encode(['content' => $content]) . "\n\n";
+                            echo 'data: '.json_encode(['content' => $content])."\n\n";
                             flush();
                         }
                     },
@@ -78,13 +78,13 @@ class GlmController extends Controller
                     language: $validated['language'] ?? 'en-US,en'
                 );
 
-                echo "data: " . json_encode(['status' => 'completed']) . "\n\n";
+                echo 'data: '.json_encode(['status' => 'completed'])."\n\n";
                 flush();
             } catch (\Exception $e) {
-                echo "data: " . json_encode([
+                echo 'data: '.json_encode([
                     'error' => 'Streaming failed',
                     'message' => $e->getMessage(),
-                ]) . "\n\n";
+                ])."\n\n";
                 flush();
             }
         }, 200, [

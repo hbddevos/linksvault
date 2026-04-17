@@ -18,7 +18,7 @@ final readonly class YouTubeTranscriptSegment
     /**
      * Create an instance from an array (typically parsed from JSON).
      *
-     * @param array{duration?: float|int, start?: float|int, text?: string} $data
+     * @param  array{duration?: float|int, start?: float|int, text?: string}  $data
      */
     public static function fromArray(array $data): self
     {

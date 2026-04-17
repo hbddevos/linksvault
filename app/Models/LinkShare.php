@@ -12,6 +12,7 @@ class LinkShare extends Model
     use AddTeamId, AddUserId;
 
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = [
@@ -73,7 +74,7 @@ class LinkShare extends Model
      */
     public function isValid(): bool
     {
-        return !$this->isExpired() && in_array($this->status, ['sent', 'opened']);
+        return ! $this->isExpired() && in_array($this->status, ['sent', 'opened']);
     }
 
     /**
@@ -81,7 +82,7 @@ class LinkShare extends Model
      */
     public function markAsOpened(): void
     {
-        if (!$this->opened_at) {
+        if (! $this->opened_at) {
             $this->update([
                 'status' => 'opened',
                 'opened_at' => now(),
@@ -123,7 +124,7 @@ class LinkShare extends Model
     {
         return $query->where(function ($q) {
             $q->whereNull('expires_at')
-              ->orWhere('expires_at', '>', now());
+                ->orWhere('expires_at', '>', now());
         });
     }
 }

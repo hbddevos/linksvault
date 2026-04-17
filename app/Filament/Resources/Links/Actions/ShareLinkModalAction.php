@@ -9,7 +9,6 @@ use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Fieldset;
@@ -35,10 +34,10 @@ class ShareLinkModalAction extends Action
             ->slideOver()
             ->form([
                 Fieldset::make('Destinataires')
-                ->columnSpanFull()
+                    ->columnSpanFull()
                     ->schema([
                         Repeater::make('recipients')
-                        ->columnSpanFull()
+                            ->columnSpanFull()
                             ->label('')
                             ->schema([
                                 Select::make('user_id')
@@ -58,13 +57,13 @@ class ShareLinkModalAction extends Action
                                         }
                                     })
                                     ->placeholder('Sélectionner un utilisateur...'),
-                                
+
                                 TextInput::make('email')
                                     ->label(__('Email'))
                                     ->email()
                                     ->required()
                                     ->maxLength(255),
-                                
+
                                 TextInput::make('name')
                                     ->label(__('Nom (optionnel)'))
                                     ->maxLength(255),
@@ -73,7 +72,7 @@ class ShareLinkModalAction extends Action
                             ->minItems(1)
                             ->maxItems(10)
                             ->default([
-                                ['email' => '', 'name' => '']
+                                ['email' => '', 'name' => ''],
                             ])
                             ->addActionLabel(__('Ajouter un destinataire')),
                     ]),
@@ -92,7 +91,7 @@ class ShareLinkModalAction extends Action
                         Checkbox::make('set_expiration')
                             ->label(__('Définir une date d\'expiration'))
                             ->live(),
-                        
+
                         TextInput::make('expires_in_days')
                             ->label(__('Expirer après (jours)'))
                             ->numeric()
@@ -105,10 +104,10 @@ class ShareLinkModalAction extends Action
             ])
             ->action(function (array $data, $record) {
                 $shareAction = app(ShareLinkBusinessAction::class);
-                
+
                 // Nettoyer les destinataires (supprimer les entrées vides)
                 $recipients = collect($data['recipients'])
-                    ->filter(fn ($r) => !empty($r['email']))
+                    ->filter(fn ($r) => ! empty($r['email']))
                     ->map(fn ($r) => [
                         'email' => $r['email'],
                         'user_id' => $r['user_id'] ?? null,
@@ -123,11 +122,11 @@ class ShareLinkModalAction extends Action
                         ->body(__('Veuillez ajouter au moins un destinataire valide.'))
                         ->danger()
                         ->send();
-                    
+
                     return;
                 }
 
-                $expiresInDays = $data['set_expiration'] && !empty($data['expires_in_days'])
+                $expiresInDays = $data['set_expiration'] && ! empty($data['expires_in_days'])
                     ? (int) $data['expires_in_days']
                     : null;
 
@@ -141,19 +140,19 @@ class ShareLinkModalAction extends Action
 
                 if ($result['success']) {
                     $count = count($result['shares']);
-                    
+
                     Notification::make()
                         ->title(__('Succès'))
-                        ->body(__(":count lien(s) partagé(s) avec succès!", ['count' => $count]))
+                        ->body(__(':count lien(s) partagé(s) avec succès!', ['count' => $count]))
                         ->success()
                         ->send();
                 } else {
                     $errorCount = count($result['errors']);
                     $successCount = count($result['shares']);
-                    
+
                     Notification::make()
                         ->title(__('Partage partiel'))
-                        ->body(__(":success réussi(s), :error échec(s). Vérifiez les logs pour plus de détails.", [
+                        ->body(__(':success réussi(s), :error échec(s). Vérifiez les logs pour plus de détails.', [
                             'success' => $successCount,
                             'error' => $errorCount,
                         ]))

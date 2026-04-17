@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
-use Filament\Tables\Table;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
-use Filament\Widgets\TableWidget;
-use Filament\Support\Icons\Heroicon;
 use Filament\Forms\Components\Select;
-use Filament\Tables\Columns\TextColumn;
-use LaravelDaily\FilaTeams\Models\Team;
 use Filament\Notifications\Notification;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Filament\Widgets\TableWidget;
 use Illuminate\Support\Facades\Auth;
 use LaravelDaily\FilaTeams\Facades\FilaTeams;
 use LaravelDaily\FilaTeams\Models\Membership;
+use LaravelDaily\FilaTeams\Models\Team;
 
 class MembersTable extends TableWidget
 {

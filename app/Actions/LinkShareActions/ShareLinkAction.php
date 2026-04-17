@@ -18,11 +18,11 @@ class ShareLinkAction
     /**
      * Partager un lien avec un ou plusieurs destinataires.
      *
-     * @param Link $link Le lien à partager
-     * @param User $sender L'utilisateur qui partage
-     * @param array $recipients Tableau de destinataires [['email' => '...', 'user_id' => null, 'name' => '...']]
-     * @param string|null $personalMessage Message personnel optionnel
-     * @param int|null $expiresInDays Nombre de jours avant expiration (null = pas d'expiration)
+     * @param  Link  $link  Le lien à partager
+     * @param  User  $sender  L'utilisateur qui partage
+     * @param  array  $recipients  Tableau de destinataires [['email' => '...', 'user_id' => null, 'name' => '...']]
+     * @param  string|null  $personalMessage  Message personnel optionnel
+     * @param  int|null  $expiresInDays  Nombre de jours avant expiration (null = pas d'expiration)
      * @return array ['success' => bool, 'shares' => array, 'errors' => array]
      */
     public function execute(
@@ -83,13 +83,13 @@ class ShareLinkAction
         ?int $expiresInDays
     ): LinkShare {
         // Validation de l'email
-        if (!filter_var($recipient['email'], FILTER_VALIDATE_EMAIL)) {
+        if (! filter_var($recipient['email'], FILTER_VALIDATE_EMAIL)) {
             throw new InvalidArgumentException("Email invalide : {$recipient['email']}");
         }
 
         // Vérifier si le destinataire est un utilisateur inscrit
         $recipientUser = null;
-        if (!empty($recipient['user_id'])) {
+        if (! empty($recipient['user_id'])) {
             $recipientUser = User::find($recipient['user_id']);
         } else {
             // Chercher par email
@@ -140,7 +140,7 @@ class ShareLinkAction
         // 2. Si le destinataire est un utilisateur inscrit, envoyer une notification in-app
         if ($share->recipient_user_id) {
             $recipient = User::find($share->recipient_user_id);
-            
+
             if ($recipient) {
                 $recipient->notify(
                     new LinkSharedNotification(

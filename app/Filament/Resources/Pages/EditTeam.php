@@ -6,25 +6,25 @@ namespace App\Filament\Resources\Pages;
 
 use BackedEnum;
 use Filament\Actions\Action;
-use Filament\Schemas\Schema;
 use Filament\Facades\Filament;
-use Filament\Support\Icons\Heroicon;
-use Illuminate\Support\Facades\Gate;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
-use Filament\Schemas\Components\Actions;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Livewire;
-use Filament\Support\Facades\FilamentView;
-use LaravelDaily\FilaTeams\Rules\TeamName;
 use Filament\Pages\Tenancy\EditTenantProfile;
+use Filament\Schemas\Components\Actions;
+use Filament\Schemas\Components\Livewire;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Support\Facades\FilamentView;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+use LaravelDaily\FilaTeams\Rules\TeamName;
 
 class EditTeam extends EditTenantProfile
 {
     protected static ?string $slug = 'settings';
 
-    protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedCog6Tooth;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCog6Tooth;
 
     public static function getLabel(): string
     {

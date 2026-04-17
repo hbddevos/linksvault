@@ -41,7 +41,7 @@ class WebPageMetadataService
     public function fetchMetadata(string $url): array
     {
         // Validation de l'URL
-        if (!$this->isValidUrl($url)) {
+        if (! $this->isValidUrl($url)) {
             return [
                 'title' => null,
                 'description' => null,
@@ -94,7 +94,7 @@ class WebPageMetadataService
                 'author' => null,
                 'type' => null,
                 'url' => null,
-                'error' => 'Erreur: ' . $e->getMessage(),
+                'error' => 'Erreur: '.$e->getMessage(),
             ];
         }
     }
@@ -176,7 +176,7 @@ class WebPageMetadataService
                 ->withoutVerifying()
                 ->get($url);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 Log::warning('Échec de la récupération HTML', [
                     'url' => $url,
                     'status' => $response->status(),
@@ -298,9 +298,9 @@ class WebPageMetadataService
         // Chercher les balises link avec rel="icon" ou rel="shortcut icon"
         if (preg_match('/<link[^>]*rel=["\'](icon|shortcut icon)["\'][^>]*href=["\'](.*?)["\']/i', $html, $matches)
             || preg_match('/<link[^>]*href=["\'](.*?)["\'][^>]*rel=["\'](icon|shortcut icon)["\']/i', $html, $matches)) {
-            
+
             $faviconUrl = trim($matches[2] ?? $matches[1]);
-            
+
             return $this->resolveUrl($faviconUrl, $baseUrl);
         }
 
@@ -309,7 +309,7 @@ class WebPageMetadataService
         $scheme = $parsedUrl['scheme'] ?? 'https';
         $host = $parsedUrl['host'] ?? '';
 
-        if (!empty($host)) {
+        if (! empty($host)) {
             return "{$scheme}://{$host}/favicon.ico";
         }
 
@@ -330,7 +330,7 @@ class WebPageMetadataService
         if (str_starts_with($url, '//')) {
             $parsedBase = parse_url($baseUrl);
             $scheme = $parsedBase['scheme'] ?? 'https';
-            
+
             return "{$scheme}:{$url}";
         }
 
@@ -339,7 +339,7 @@ class WebPageMetadataService
             $parsedBase = parse_url($baseUrl);
             $scheme = $parsedBase['scheme'] ?? 'https';
             $host = $parsedBase['host'] ?? '';
-            
+
             return "{$scheme}://{$host}{$url}";
         }
 
@@ -348,13 +348,13 @@ class WebPageMetadataService
         $scheme = $parsedBase['scheme'] ?? 'https';
         $host = $parsedBase['host'] ?? '';
         $path = $parsedBase['path'] ?? '';
-        
+
         // Obtenir le dossier de base
         $basePath = dirname($path);
         if ($basePath === '\\' || $basePath === '/') {
             $basePath = '';
         }
-        
+
         return "{$scheme}://{$host}{$basePath}/{$url}";
     }
 }

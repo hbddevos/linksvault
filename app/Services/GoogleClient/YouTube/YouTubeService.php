@@ -8,13 +8,14 @@ use Google_Service_YouTube;
 class YouTubeService
 {
     protected Google_Client $client;
+
     protected Google_Service_YouTube $youtube;
 
     public function __construct()
     {
-        $this->client = new Google_Client();
+        $this->client = new Google_Client;
         $this->client->setDeveloperKey(config('google.api_key'));
-        
+
         $this->youtube = new Google_Service_YouTube($this->client);
     }
 

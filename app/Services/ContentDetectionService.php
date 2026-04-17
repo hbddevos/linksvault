@@ -221,7 +221,7 @@ class ContentDetectionService
      */
     protected function isYouTube(string $host, string $path): bool
     {
-        $fullUrl = $host . $path;
+        $fullUrl = $host.$path;
 
         foreach (self::YOUTUBE_PATTERNS as $pattern) {
             if (str_contains($fullUrl, $pattern)) {
@@ -272,7 +272,7 @@ class ContentDetectionService
     protected function extractYouTubeMetadata(string $url): array
     {
         $videoId = $this->extractYouTubeVideoId($url);
-        $metaData = (new WebPageMetadataService())->fetchMetadata($url);
+        $metaData = (new WebPageMetadataService)->fetchMetadata($url);
         $metaData['video_id'] = $videoId ?? null;
 
         return $metaData;
@@ -286,8 +286,9 @@ class ContentDetectionService
     protected function extractDriveMetadata(string $url): array
     {
         $isShared = str_contains($url, '/file/d/') || str_contains($url, 'usp=sharing');
-        $metaData = (new WebPageMetadataService())->fetchMetadata($url);
+        $metaData = (new WebPageMetadataService)->fetchMetadata($url);
         $metaData['shared'] = $isShared;
+
         return $metaData;
     }
 
@@ -299,7 +300,7 @@ class ContentDetectionService
     protected function extractArticleMetadata(string $url): array
     {
         // Basic metadata - would be enriched by embed/embed package
-        return (new WebPageMetadataService())->fetchMetadata($url);
+        return (new WebPageMetadataService)->fetchMetadata($url);
     }
 
     /**
@@ -309,8 +310,9 @@ class ContentDetectionService
      */
     protected function extractPdfMetadata(string $url): array
     {
-        $metaData = (new WebPageMetadataService())->fetchMetadata($url);
+        $metaData = (new WebPageMetadataService)->fetchMetadata($url);
         $metaData['mime_type'] = 'application/pdf';
+
         return $metaData;
     }
 
@@ -321,7 +323,7 @@ class ContentDetectionService
      */
     protected function extractImageMetadata(string $url): array
     {
-        $metaData = (new WebPageMetadataService())->fetchMetadata($url);
+        $metaData = (new WebPageMetadataService)->fetchMetadata($url);
         $ext = pathinfo(parse_url($url, PHP_URL_PATH) ?? '', PATHINFO_EXTENSION);
         $mimeTypes = [
             'jpg' => 'image/jpeg',
@@ -335,7 +337,7 @@ class ContentDetectionService
         ];
 
         $metaData['mime_type'] = $mimeTypes[$ext];
-        
+
         return $metaData;
     }
 
@@ -377,7 +379,6 @@ class ContentDetectionService
 
         return $title ?: $host;
     }
-
 
     public function getYoutubeVideoDescription($url): ?string
     {

@@ -1,0 +1,220 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  validate:
+    name: Validate Before Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo, pdo_mysql, bcmath
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '25'
+          cache: 'npm'
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Install NPM dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      # - name: Run PHP linter
+      #   run: vendor/bin/pint --test
+
+      # - name: Run tests
+      #   env:
+      #     DB_CONNECTION: sqlite
+      #     DB_DATABASE: ':memory:'
+      #     APP_ENV: testing
+      #     CACHE_DRIVER: array
+      #     SESSION_DRIVER: array
+      #     QUEUE_CONNECTION: sync
+      #   run: php artisan test
+
+  deploy:
+    name: Deploy via FTP
+    needs: validate
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.deployment.outputs.url }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo, pdo_mysql, bcmath
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Cache NPM dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Install NPM dependencies
+        run: npm ci
+
+      - name: Build production assets
+        run: npm run build
+
+      - name: Detect changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v41
+        with:
+          files: |
+            app/**
+            config/**
+            database/migrations/**
+            public/**
+            resources/**
+            routes/**
+            .env.production
+          files_ignore: |
+            .git/**
+            node_modules/**
+            .DS_Store
+            tests/**
+            .github/**
+            .vscode/**
+            storage/**
+            bootstrap/cache/**
+
+      - name: List files to deploy
+        run: |
+          echo "=== FILES TO DEPLOY ==="
+          echo "${{ steps.changed-files.outputs.all_changed_files }}"
+
+      - name: Deploy to FTP server
+        id: deployment
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT || 21 }}
+          protocol: ftp
+          local-dir: ./
+          server-dir: ./
+          exclude: |
+            **/.git/**
+            **/node_modules/**
+            **/vendor/**
+            **/tests/**
+            **/.env
+            **/.env.example
+            **/.gitignore
+            **/package-lock.json
+            **/.DS_Store
+            **/README.md
+            **/.github/**
+            **/.vscode/**
+            **/storage/**
+            **/bootstrap/cache/**
+
+      - name: Run database migrations
+        if: contains(steps.changed-files.outputs.all_changed_files, 'database/migrations/')
+        run: |
+          echo "Running database migrations..."
+          php artisan migrate --force
+        env:
+          APP_ENV: production
+
+      - name: Clear and cache Laravel config
+        if: contains(steps.changed-files.outputs.all_changed_files, 'app/') || contains(steps.changed-files.outputs.all_changed_files, 'config/')
+        run: |
+          echo "Clearing Laravel caches..."
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+          php artisan optimize
+
+      - name: Set deployment outputs
+        id: outputs
+        run: |
+          echo "url=${{ vars.APP_URL || 'https://ribedu.com' }}" >> $GITHUB_OUTPUT
+          echo "timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+
+  post-deploy:
+    name: Post-Deployment Verification
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: success()
+    
+    steps:
+      - name: Deployment summary
+        run: |
+          echo "## ✅ Deployment Successful" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: Production" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployed at**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on success
+        if: success()
+        run: echo "✅ Deployment completed successfully!"
+
+      - name: Notify on failure
+        if: failure()
+        run: echo "❌ Deployment failed! Please check the logs for details."

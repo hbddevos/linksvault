@@ -6,8 +6,8 @@ namespace App;
 
 use App\Enums\TeamPermission as EnumsTeamPermission;
 use App\Enums\TeamRole;
-use LaravelDaily\FilaTeams\Contracts\TeamRoleContract;
 use LaravelDaily\FilaTeams\Contracts\TeamPermissionContract;
+use LaravelDaily\FilaTeams\Contracts\TeamRoleContract;
 
 class FilaTeams
 {

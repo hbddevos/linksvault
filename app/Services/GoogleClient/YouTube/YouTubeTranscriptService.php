@@ -2,24 +2,24 @@
 
 namespace App\Services\GoogleClient\YouTube;
 
-use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Process;
 
 class YouTubeTranscriptService
 {
     /**
      * Récupérer la transcription (version simplifiée)
-     * 
+     *
      * Le script Python gère maintenant intelligemment le fallback multi-langues
      */
     public function getTranscript(string $videoId, string $language = 'fr'): ?array
     {
         // Normaliser le code de langue (extraire uniquement les 2 premières lettres)
         $normalizedLang = $this->normalizeLanguageCode($language);
-        
+
         $cacheKey = "transcript_{$videoId}_{$normalizedLang}";
-        
+
         return Cache::remember($cacheKey, now()->addHours(24), function () use ($videoId, $normalizedLang) {
             // Le script Python gère automatiquement le fallback intelligent
             // (langue préférée → variantes → anglais → première disponible)
@@ -32,50 +32,52 @@ class YouTubeTranscriptService
      */
     protected function executePythonScript(string $videoId, string $language): ?array
     {
-        $command = "python " . storage_path('app/scripts/get_transcript.py') . " {$videoId} {$language}";
-        
-        Log::info("Exécution commande transcription", [
+        $command = 'python '.storage_path('app/scripts/get_transcript.py')." {$videoId} {$language}";
+
+        Log::info('Exécution commande transcription', [
             'command' => $command,
             'video_id' => $videoId,
-            'language' => $language
+            'language' => $language,
         ]);
-        
+
         $process = Process::run($command);
         $output = $process->output();
         $errorOutput = $process->errorOutput();
-        
+
         if ($errorOutput) {
-            Log::error("Erreur dans le script Python", [
+            Log::error('Erreur dans le script Python', [
                 'error' => $errorOutput,
                 'video_id' => $videoId,
-                'language' => $language
+                'language' => $language,
             ]);
         }
-        
+
         if ($output) {
             $result = json_decode($output, true);
-            
+
             if (json_last_error() !== JSON_ERROR_NONE) {
-                Log::error("Erreur de décodage JSON", [
+                Log::error('Erreur de décodage JSON', [
                     'error' => json_last_error_msg(),
                     'output' => $output,
-                    'video_id' => $videoId
+                    'video_id' => $videoId,
                 ]);
+
                 return null;
             }
-            
+
             // Le script retourne maintenant une erreur structurée avec détails
             if (isset($result['error'])) {
-                Log::warning("Erreur API transcription", [
+                Log::warning('Erreur API transcription', [
                     'error' => $result['error'],
                     'message' => $result['message'] ?? '',
                     'available_languages' => $result['available_languages'] ?? [],
                     'video_id' => $videoId,
-                    'language' => $language
+                    'language' => $language,
                 ]);
+
                 return null;
             }
-            
+
             if (isset($result['segments'])) {
                 // Logger la stratégie utilisée (nouveau champ du script Python)
                 if (isset($result['strategy_used'])) {
@@ -84,20 +86,20 @@ class YouTubeTranscriptService
                         'language' => $language,
                         'actual_language' => $result['language_code'] ?? null,
                         'is_generated' => $result['is_generated'] ?? null,
-                        'segments_count' => count($result['segments'])
+                        'segments_count' => count($result['segments']),
                     ]);
                 } else {
-                    Log::info("Transcription réussie", [
+                    Log::info('Transcription réussie', [
                         'video_id' => $videoId,
                         'language' => $language,
-                        'segments_count' => count($result['segments'])
+                        'segments_count' => count($result['segments']),
                     ]);
                 }
-                
+
                 return $result;
             }
         }
-        
+
         return null;
     }
 
@@ -110,13 +112,14 @@ class YouTubeTranscriptService
         // Si le code contient un tiret, prendre uniquement la partie avant
         if (str_contains($language, '-')) {
             $normalized = explode('-', $language)[0];
-            Log::debug("Normalisation code langue", [
+            Log::debug('Normalisation code langue', [
                 'original' => $language,
-                'normalized' => $normalized
+                'normalized' => $normalized,
             ]);
+
             return strtolower($normalized);
         }
-        
+
         return strtolower($language);
     }
 
@@ -126,7 +129,7 @@ class YouTubeTranscriptService
     public function getPlainText(string $videoId, string $language = 'fr'): ?string
     {
         $transcript = $this->getTranscript($videoId, $language);
-        
+
         return $transcript['full_text'] ?? null;
     }
 
@@ -135,17 +138,17 @@ class YouTubeTranscriptService
      */
     public function getAvailableLanguages(string $videoId): array
     {
-        $command = "python " . storage_path('app/scripts/get_transcript.py') . " {$videoId} list 2>&1";
-        
+        $command = 'python '.storage_path('app/scripts/get_transcript.py')." {$videoId} list 2>&1";
+
         $output = shell_exec($command);
-        
+
         if ($output) {
             $result = json_decode($output, true);
-            if (is_array($result) && !isset($result['error'])) {
+            if (is_array($result) && ! isset($result['error'])) {
                 return $result;
             }
         }
-        
+
         return [];
     }
 
@@ -155,8 +158,8 @@ class YouTubeTranscriptService
     public function exportToSRT(string $videoId, string $language = 'fr'): ?string
     {
         $transcript = $this->getTranscript($videoId, $language);
-        
-        if (!$transcript || !isset($transcript['segments'])) {
+
+        if (! $transcript || ! isset($transcript['segments'])) {
             return null;
         }
 

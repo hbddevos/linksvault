@@ -14,12 +14,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 // class Team extends \LaravelDaily\FilaTeams\Models\Team
 class Team extends Model
 {
-    use SoftDeletes;
-
-  /** @use HasFactory<TeamFactory> */
+    /** @use HasFactory<TeamFactory> */
     use GeneratesUniqueTeamSlugs;
 
     use HasFactory;
+
+    use SoftDeletes;
     use SoftDeletes;
 
     protected $fillable = [
@@ -72,6 +72,7 @@ class Team extends Model
             'is_personal' => 'boolean',
         ];
     }
+
     public function links(): HasMany
     {
         return $this->hasMany(Link::class);

@@ -20,8 +20,8 @@ class TeamFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'        => fake()->company(),
-            'slug'        => fake()->unique()->slug(2),
+            'name' => fake()->company(),
+            'slug' => fake()->unique()->slug(2),
             'is_personal' => false,
         ];
     }

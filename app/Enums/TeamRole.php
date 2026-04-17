@@ -10,8 +10,8 @@ use LaravelDaily\FilaTeams\Contracts\TeamRoleContract;
 
 enum TeamRole: string implements TeamRoleContract
 {
-    case Owner  = 'owner';
-    case Admin  = 'admin';
+    case Owner = 'owner';
+    case Admin = 'admin';
     case Member = 'member';
 
     public static function owner(): static
@@ -36,16 +36,16 @@ enum TeamRole: string implements TeamRoleContract
             ->toArray();
     }
 
-    public function getLabel(): string | Htmlable | null
+    public function getLabel(): string|Htmlable|null
     {
-        return __('filateams::filateams.roles.' . $this->value);
+        return __('filateams::filateams.roles.'.$this->value);
     }
 
     public function getColor(): string
     {
         return match ($this) {
-            self::Owner  => 'danger',
-            self::Admin  => 'warning',
+            self::Owner => 'danger',
+            self::Admin => 'warning',
             self::Member => 'info',
         };
     }
@@ -77,8 +77,8 @@ enum TeamRole: string implements TeamRoleContract
     public function level(): int
     {
         return match ($this) {
-            self::Owner  => 3,
-            self::Admin  => 2,
+            self::Owner => 3,
+            self::Admin => 2,
             self::Member => 1,
         };
     }

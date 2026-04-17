@@ -25,7 +25,7 @@ class GlmService
     public function __construct()
     {
         $this->apiKey = config('services.glm.api_key', env('GLM_API_KEY'));
-        
+
         if (empty($this->apiKey)) {
             Log::warning('GLM API key is not configured');
         }
@@ -34,9 +34,9 @@ class GlmService
     /**
      * Make a chat completion request with conversation history
      *
-     * @param array $messages Array of message objects with 'role' and 'content'
-     * @param string|null $model Model to use (defaults to glm-5.1)
-     * @param string $language Language preference (default: en-US,en)
+     * @param  array  $messages  Array of message objects with 'role' and 'content'
+     * @param  string|null  $model  Model to use (defaults to glm-5.1)
+     * @param  string  $language  Language preference (default: en-US,en)
      * @return array Response from the API
      */
     public function chatWithHistory(array $messages, ?string $model = null, string $language = 'en-US,en'): array
@@ -45,7 +45,7 @@ class GlmService
 
         try {
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Authorization' => 'Bearer '.$this->apiKey,
                 'Accept-Language' => $language,
                 'Content-Type' => 'application/json',
             ])->post("{$this->baseUrl}/chat/completions", [
@@ -76,11 +76,10 @@ class GlmService
     /**
      * Make a streaming chat completion request
      *
-     * @param array $messages Array of message objects with 'role' and 'content'
-     * @param callable $callback Callback function to handle each chunk
-     * @param string|null $model Model to use (defaults to glm-5.1)
-     * @param string $language Language preference (default: en-US,en)
-     * @return void
+     * @param  array  $messages  Array of message objects with 'role' and 'content'
+     * @param  callable  $callback  Callback function to handle each chunk
+     * @param  string|null  $model  Model to use (defaults to glm-5.1)
+     * @param  string  $language  Language preference (default: en-US,en)
      */
     public function chatStream(array $messages, callable $callback, ?string $model = null, string $language = 'en-US,en'): void
     {
@@ -88,7 +87,7 @@ class GlmService
 
         try {
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Authorization' => 'Bearer '.$this->apiKey,
                 'Accept-Language' => $language,
                 'Content-Type' => 'application/json',
             ])->withOptions([
@@ -114,7 +113,7 @@ class GlmService
 
             foreach ($lines as $line) {
                 $line = trim($line);
-                
+
                 if (empty($line)) {
                     continue;
                 }
@@ -127,7 +126,7 @@ class GlmService
                 // Parse SSE data
                 if (str_starts_with($line, 'data: ')) {
                     $data = substr($line, 6);
-                    
+
                     // Check for end of stream
                     if ($data === '[DONE]') {
                         break;
@@ -159,9 +158,9 @@ class GlmService
     /**
      * Make a simple chat completion request
      *
-     * @param string $message User message content
-     * @param string|null $model Model to use (defaults to glm-5.1)
-     * @param string $language Language preference (default: en-US,en)
+     * @param  string  $message  User message content
+     * @param  string|null  $model  Model to use (defaults to glm-5.1)
+     * @param  string  $language  Language preference (default: en-US,en)
      * @return array Response from the API
      */
     public function chatSimple(string $message, ?string $model = null, string $language = 'en-US,en'): array
@@ -170,7 +169,7 @@ class GlmService
 
         try {
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Authorization' => 'Bearer '.$this->apiKey,
                 'Accept-Language' => $language,
                 'Content-Type' => 'application/json',
             ])->post("{$this->baseUrl}/chat/completions", [
@@ -206,7 +205,7 @@ class GlmService
     /**
      * Extract assistant's response content from API response
      *
-     * @param array $response API response
+     * @param  array  $response  API response
      * @return string|null Assistant's message content
      */
     public function extractResponse(array $response): ?string

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Rules;
 
 use Closure;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 
 class TeamName implements ValidationRule
 {

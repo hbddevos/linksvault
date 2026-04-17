@@ -2,17 +2,18 @@
 
 namespace App\Services\GoogleClient\YouTube;
 
-use Google_Service_YouTube;
 use Google_Client;
+use Google_Service_YouTube;
 
 class YouTubeVideoService
 {
     protected Google_Service_YouTube $youtube;
+
     protected Google_Client $client;
 
     public function __construct()
     {
-        $this->client = new Google_Client();
+        $this->client = new Google_Client;
         $this->client->setDeveloperKey(config('google.api_key'));
         $this->youtube = new Google_Service_YouTube($this->client);
     }
@@ -27,7 +28,7 @@ class YouTubeVideoService
                 'snippet,contentDetails,statistics,recordingDetails,topicDetails,status,player',
                 [
                     'id' => $videoId,
-                    'maxResults' => 1
+                    'maxResults' => 1,
                 ]
             );
 
@@ -36,9 +37,10 @@ class YouTubeVideoService
             }
 
             return $this->formatVideoData($response->items[0]);
-            
+
         } catch (\Exception $e) {
-            \Log::error('YouTube API Error: ' . $e->getMessage());
+            \Log::error('YouTube API Error: '.$e->getMessage());
+
             return null;
         }
     }
@@ -53,7 +55,7 @@ class YouTubeVideoService
                 'snippet,contentDetails,statistics,status',
                 [
                     'id' => implode(',', $videoIds),
-                    'maxResults' => 50
+                    'maxResults' => 50,
                 ]
             );
 
@@ -62,7 +64,8 @@ class YouTubeVideoService
             }, $response->items);
 
         } catch (\Exception $e) {
-            \Log::error('YouTube API Error: ' . $e->getMessage());
+            \Log::error('YouTube API Error: '.$e->getMessage());
+
             return [];
         }
     }
@@ -79,7 +82,7 @@ class YouTubeVideoService
                     'q' => $query,
                     'maxResults' => $maxResults,
                     'type' => 'video',
-                    'order' => 'relevance'
+                    'order' => 'relevance',
                 ]
             );
 
@@ -98,7 +101,8 @@ class YouTubeVideoService
             }, $searchResponse->items);
 
         } catch (\Exception $e) {
-            \Log::error('YouTube Search Error: ' . $e->getMessage());
+            \Log::error('YouTube Search Error: '.$e->getMessage());
+
             return [];
         }
     }
@@ -124,27 +128,27 @@ class YouTubeVideoService
             'category_id' => $snippet['categoryId'] ?? '',
             'tags' => $snippet['tags'] ?? [],
             'player' => $player['embedHtml'] ?? [],
-            
+
             // Duration ISO 8601 (ex: PT1H2M3S)
             'duration' => $contentDetails['duration'] ?? '',
             'dimension' => $contentDetails['dimension'] ?? '',
             'definition' => $contentDetails['definition'] ?? '',
             'caption' => $contentDetails['caption'] ?? false,
             'licensed_content' => $contentDetails['licensedContent'] ?? false,
-            
+
             // Statistiques
             'view_count' => $statistics['viewCount'] ?? 0,
             'like_count' => $statistics['likeCount'] ?? 0,
             'dislike_count' => $statistics['dislikeCount'] ?? 0,
             'favorite_count' => $statistics['favoriteCount'] ?? 0,
             'comment_count' => $statistics['commentCount'] ?? 0,
-            
+
             // Status
             'privacy_status' => $status['privacyStatus'] ?? '',
             'upload_status' => $status['uploadStatus'] ?? '',
             'license' => $status['license'] ?? '',
             'embeddable' => $status['embeddable'] ?? true,
-            
+
             // Thumbnails
             'thumbnail_default' => $snippet['thumbnails']['default']['url'] ?? '',
             'thumbnail_medium' => $snippet['thumbnails']['medium']['url'] ?? '',
@@ -159,12 +163,13 @@ class YouTubeVideoService
     public function isShort(string $videoId): bool
     {
         $video = $this->getVideoInfo($videoId);
-        
-        if (!$video || !isset($video['duration'])) {
+
+        if (! $video || ! isset($video['duration'])) {
             return false;
         }
 
         $duration = $this->parseDuration($video['duration']);
+
         return $duration <= 60;
     }
 
@@ -174,11 +179,11 @@ class YouTubeVideoService
     public function parseDuration(string $isoDuration): int
     {
         preg_match('/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/', $isoDuration, $matches);
-        
+
         $hours = intval($matches[1] ?? 0);
         $minutes = intval($matches[2] ?? 0);
         $seconds = intval($matches[3] ?? 0);
-        
+
         return ($hours * 3600) + ($minutes * 60) + $seconds;
     }
 }

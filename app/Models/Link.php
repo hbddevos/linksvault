@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Concerns\AddTeamId;
 use App\Concerns\AddUserId;
 use App\Enums\ContentType;
 use Illuminate\Database\Eloquent\Model;

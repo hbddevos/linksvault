@@ -25,8 +25,7 @@ class YouTubeService
 
     public function __construct(
         protected ContentDetectionService $contentDetection,
-    ) {
-    }
+    ) {}
 
     /**
      * Get video metadata from YouTube API with caching.
@@ -37,7 +36,7 @@ class YouTubeService
     {
         $videoId = $this->contentDetection->extractYouTubeVideoId($url);
 
-        if (!$videoId) {
+        if (! $videoId) {
             return null;
         }
 
@@ -89,7 +88,7 @@ class YouTubeService
         }
 
         // Fallback to thumbnail from known YouTube URL pattern
-        if (!$data['thumbnail']) {
+        if (! $data['thumbnail']) {
             $data['thumbnail'] = "https://img.youtube.com/vi/{$videoId}/hqdefault.jpg";
         }
 
@@ -106,7 +105,7 @@ class YouTubeService
     {
         $videoId = $this->contentDetection->extractYouTubeVideoId($url);
 
-        if (!$videoId) {
+        if (! $videoId) {
             return null;
         }
 
@@ -115,12 +114,12 @@ class YouTubeService
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($videoId, $apiKey) {
             $apiKey = $apiKey ?? config('services.youtube.api_key');
 
-            if (!$apiKey) {
+            if (! $apiKey) {
                 return null;
             }
 
             try {
-                $response = Http::timeout(10)->get(self::API_BASE . '/videos', [
+                $response = Http::timeout(10)->get(self::API_BASE.'/videos', [
                     'part' => 'snippet,contentDetails,statistics',
                     'id' => $videoId,
                     'key' => $apiKey,
@@ -130,7 +129,7 @@ class YouTubeService
                     $body = $response->json();
                     $items = $body['items'] ?? [];
 
-                    if (!empty($items)) {
+                    if (! empty($items)) {
                         $item = $items[0];
                         $snippet = $item['snippet'] ?? [];
                         $contentDetails = $item['contentDetails'] ?? [];
@@ -197,5 +196,4 @@ class YouTubeService
     {
         Cache::tags(['youtube'])->flush();
     }
-
 }

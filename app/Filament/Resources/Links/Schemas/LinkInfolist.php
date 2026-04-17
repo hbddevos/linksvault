@@ -6,7 +6,6 @@ use App\Filament\Resources\Links\Actions\ShareLinkModalAction;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
-use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Group;
@@ -86,7 +85,7 @@ class LinkInfolist
                         TextEntry::make('objective')
                             ->label(__('Objective'))
                             ->placeholder(__('No objective set.')),
-                             // Divider
+                        // Divider
                         Group::make([])
                             ->extraAttributes(['class' => 'border-t border-gray-200 dark:border-gray-700 my-4']),
 
@@ -108,7 +107,6 @@ class LinkInfolist
                                     ->visible(fn ($record) => filled($record->url)),
                             ])
                             ->collapsed(fn ($record) => blank($record->ai_summary)),
-
 
                         // Divider
                         Group::make([])

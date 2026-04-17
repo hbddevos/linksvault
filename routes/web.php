@@ -1,14 +1,12 @@
 <?php
 
-use App\Ai\Agents\YoutubeTranscriptSummary;
 use App\Http\Controllers\AcceptInvitationController;
 use App\Http\Controllers\GlmController;
 use App\Http\Controllers\LinkShareController;
+use App\Services\GlmService;
 use App\Services\WebPageMetadataService;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Route;
-use Laravel\Ai\Enums\Lab;
-use App\Services\GlmService;
 
 // Routes pour GLM API
 Route::prefix('glm')->group(function () {
@@ -25,17 +23,14 @@ Route::get('/team-invitations/{code}/accept', AcceptInvitationController::class)
     ->middleware(['web', 'signed'])
     ->name('filateams.invitations.accept');
 
-
-    
 Route::get('/', function () {
-
 
     // $response = app(GlmService::class)->chatSimple('Hello');
     // $answer = app(GlmService::class)->extractResponse($response);
 
     // dump($answer, $response);
 
-    $process = Process::run("youtube_transcript_api ulJTCVm3wXo");
+    $process = Process::run('youtube_transcript_api ulJTCVm3wXo');
 
     $output = $process->output();
 
@@ -46,8 +41,7 @@ Route::get('/', function () {
     $data = json_decode($json, true);
     $fullText = '';
 
-
-    $webpageData = (new WebPageMetadataService())->fetchMetadata('https://docs.google.com/document/d/11uc-no4tXCTS9QA7USLGFiyIiOAjx6BvEyR7g1EpL0Q/edit?usp=sharing');
+    $webpageData = (new WebPageMetadataService)->fetchMetadata('https://docs.google.com/document/d/11uc-no4tXCTS9QA7USLGFiyIiOAjx6BvEyR7g1EpL0Q/edit?usp=sharing');
 
     dump($webpageData);
     // foreach ($data[0] as $segment) {

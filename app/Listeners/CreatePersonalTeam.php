@@ -20,7 +20,7 @@ class CreatePersonalTeam
         $user = $event->getUser();
 
         $this->action->handle($user, [
-            'name'        => __('filateams::filateams.personal_team_name', ['name' => $user->name]),
+            'name' => __('filateams::filateams.personal_team_name', ['name' => $user->name]),
             'is_personal' => true,
         ]);
     }

@@ -18,7 +18,9 @@ use Throwable;
 class YouTubeTranscriptionService
 {
     private string $pythonPath;
+
     private string $scriptPath;
+
     private array $defaultLanguages;
 
     public function __construct(
@@ -34,8 +36,8 @@ class YouTubeTranscriptionService
     /**
      * Fetch transcription for a video.
      *
-     * @param string $videoId The YouTube video ID
-     * @param array<string>|null $languages Preferred languages (ordered by priority)
+     * @param  string  $videoId  The YouTube video ID
+     * @param  array<string>|null  $languages  Preferred languages (ordered by priority)
      *
      * @throws YouTubeTranscriptionException
      */
@@ -80,7 +82,7 @@ class YouTubeTranscriptionService
     /**
      * Check if a transcript is available for a video.
      *
-     * @param string $videoId The YouTube video ID
+     * @param  string  $videoId  The YouTube video ID
      *
      * @throws YouTubeTranscriptionException
      */
@@ -102,8 +104,8 @@ class YouTubeTranscriptionService
     /**
      * Try multiple languages and return the first available transcription.
      *
-     * @param string $videoId The YouTube video ID
-     * @param array<string>|null $languages Languages to try (null = use defaults)
+     * @param  string  $videoId  The YouTube video ID
+     * @param  array<string>|null  $languages  Languages to try (null = use defaults)
      *
      * @throws YouTubeTranscriptionException if no transcript is available in any language
      */
@@ -137,7 +139,7 @@ class YouTubeTranscriptionService
     {
         // YouTube video IDs are typically 11 characters
         // They can contain letters, numbers, underscores, and hyphens
-        if (!preg_match('/^[a-zA-Z0-9_-]{11}$/', $videoId)) {
+        if (! preg_match('/^[a-zA-Z0-9_-]{11}$/', $videoId)) {
             throw new \InvalidArgumentException(
                 "Invalid YouTube video ID format: '{$videoId}'. Expected 11-character alphanumeric string."
             );
@@ -147,7 +149,7 @@ class YouTubeTranscriptionService
     /**
      * Validate language codes.
      *
-     * @param array<string> $languages
+     * @param  array<string>  $languages
      *
      * @throws \InvalidArgumentException
      */
@@ -158,7 +160,7 @@ class YouTubeTranscriptionService
         }
 
         foreach ($languages as $language) {
-            if (!preg_match('/^[a-z]{2}(-[A-Z]{2})?$/', $language)) {
+            if (! preg_match('/^[a-z]{2}(-[A-Z]{2})?$/', $language)) {
                 throw new \InvalidArgumentException(
                     "Invalid language code format: '{$language}'. Expected ISO 639-1 code (e.g., 'en', 'fr-FR')."
                 );
@@ -271,7 +273,7 @@ class YouTubeTranscriptionService
         try {
             $data = json_decode($cleanedResponse, true, 512, JSON_THROW_ON_ERROR);
 
-            if (!is_array($data)) {
+            if (! is_array($data)) {
                 throw YouTubeTranscriptionException::parseFailed($response);
             }
 
@@ -286,7 +288,7 @@ class YouTubeTranscriptionService
             }
 
             // Ensure we have an array of segments
-            if (!empty($data) && !is_array(reset($data))) {
+            if (! empty($data) && ! is_array(reset($data))) {
                 // Single segment object, wrap in array
                 $data = [$data];
             }

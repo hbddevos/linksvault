@@ -9,11 +9,11 @@ use App\Exceptions\YouTubeTranscriptionException;
 use App\Services\YouTube\YouTubeTranscriptionService;
 use Illuminate\Support\Facades\Process;
 use PHPUnit\Framework\TestCase;
-use Throwable;
 
 class YouTubeTranscriptionServiceTest extends TestCase
 {
     private YouTubeTranscriptionService $service;
+
     private string $fixturePath;
 
     protected function setUp(): void
@@ -26,10 +26,10 @@ class YouTubeTranscriptionServiceTest extends TestCase
             defaultLanguages: ['en', 'fr', 'es', 'de']
         );
 
-        $this->fixturePath = __DIR__ . '/../../fixtures';
+        $this->fixturePath = __DIR__.'/../../fixtures';
     }
 
-    public function testGetTranscriptionParsesValidResponse(): void
+    public function test_get_transcription_parses_valid_response(): void
     {
         $rawOutput = "[[{'duration': 5.04, 'start': 1.92, 'text': 'A single note might seem like a simple sound, but when it finds others,'}, {'duration': 4.48, 'start': 6.96, 'text': 'a melody is born that can give meaning to everything.'}]]";
 
@@ -44,7 +44,7 @@ class YouTubeTranscriptionServiceTest extends TestCase
         $this->assertFalse($transcription->isEmpty());
     }
 
-    public function testGetPlainTextReturnsConcatenatedText(): void
+    public function test_get_plain_text_returns_concatenated_text(): void
     {
         $rawOutput = "[[{'duration': 5.04, 'start': 1.92, 'text': 'Hello world'}, {'duration': 4.48, 'start': 6.96, 'text': 'This is a test'}]]";
 
@@ -57,7 +57,7 @@ class YouTubeTranscriptionServiceTest extends TestCase
         $this->assertEquals('Hello world This is a test', $transcription->getPlainText());
     }
 
-    public function testGetTextWithTimestampsReturnsFormattedText(): void
+    public function test_get_text_with_timestamps_returns_formatted_text(): void
     {
         $rawOutput = "[[{'duration': 5.04, 'start': 1.92, 'text': 'Hello'}, {'duration': 4.48, 'start': 6.96, 'text': 'World'}]]";
 
@@ -73,7 +73,7 @@ class YouTubeTranscriptionServiceTest extends TestCase
         $this->assertStringContainsString('[00:00:06.960] World', $textWithTimestamps);
     }
 
-    public function testGetTotalDurationCalculatesCorrectly(): void
+    public function test_get_total_duration_calculates_correctly(): void
     {
         $rawOutput = "[[{'duration': 5.04, 'start': 1.92, 'text': 'First'}, {'duration': 4.48, 'start': 6.96, 'text': 'Second'}]]";
 
@@ -87,9 +87,9 @@ class YouTubeTranscriptionServiceTest extends TestCase
         $this->assertEqualsWithDelta(11.44, $transcription->getTotalDuration(), 0.01);
     }
 
-    public function testVideoNotFoundThrowsException(): void
+    public function test_video_not_found_throws_exception(): void
     {
-        $errorOutput = "Video unavailable";
+        $errorOutput = 'Video unavailable';
 
         Process::fake([
             '*' => Process::result($errorOutput, 1),
@@ -106,9 +106,9 @@ class YouTubeTranscriptionServiceTest extends TestCase
         }
     }
 
-    public function testTranscriptUnavailableThrowsException(): void
+    public function test_transcript_unavailable_throws_exception(): void
     {
-        $errorOutput = "No transcripts were found for this video";
+        $errorOutput = 'No transcripts were found for this video';
 
         Process::fake([
             '*' => Process::result($errorOutput, 1),
@@ -125,7 +125,7 @@ class YouTubeTranscriptionServiceTest extends TestCase
         }
     }
 
-    public function testInvalidVideoIdThrowsException(): void
+    public function test_invalid_video_id_throws_exception(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid YouTube video ID format');
@@ -133,14 +133,14 @@ class YouTubeTranscriptionServiceTest extends TestCase
         $this->service->getTranscription('invalid-id');
     }
 
-    public function testEmptyVideoIdThrowsException(): void
+    public function test_empty_video_id_throws_exception(): void
     {
         $this->expectException(\InvalidArgumentException::class);
 
         $this->service->getTranscription('');
     }
 
-    public function testInvalidLanguageCodeThrowsException(): void
+    public function test_invalid_language_code_throws_exception(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid language code format');
@@ -148,7 +148,7 @@ class YouTubeTranscriptionServiceTest extends TestCase
         $this->service->getTranscription('ulJTCVm3wXo', ['INVALID']);
     }
 
-    public function testEmptyLanguagesThrowsException(): void
+    public function test_empty_languages_throws_exception(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('At least one language code must be provided');
@@ -156,7 +156,7 @@ class YouTubeTranscriptionServiceTest extends TestCase
         $this->service->getTranscription('ulJTCVm3wXo', []);
     }
 
-    public function testIsAvailableReturnsTrueWhenTranscriptExists(): void
+    public function test_is_available_returns_true_when_transcript_exists(): void
     {
         $rawOutput = "[[{'duration': 5.04, 'start': 1.92, 'text': 'Test'}]]";
 
@@ -167,9 +167,9 @@ class YouTubeTranscriptionServiceTest extends TestCase
         $this->assertTrue($this->service->isAvailable('ulJTCVm3wXo'));
     }
 
-    public function testIsAvailableReturnsFalseWhenTranscriptUnavailable(): void
+    public function test_is_available_returns_false_when_transcript_unavailable(): void
     {
-        $errorOutput = "No transcripts were found";
+        $errorOutput = 'No transcripts were found';
 
         Process::fake([
             '*' => Process::result($errorOutput, 1),
@@ -178,7 +178,7 @@ class YouTubeTranscriptionServiceTest extends TestCase
         $this->assertFalse($this->service->isAvailable('notext1234567'));
     }
 
-    public function testGetSegmentsInRangeFiltersCorrectly(): void
+    public function test_get_segments_in_range_filters_correctly(): void
     {
         $rawOutput = "[[
             {'duration': 5.0, 'start': 0.0, 'text': 'Segment 1'},
@@ -200,7 +200,7 @@ class YouTubeTranscriptionServiceTest extends TestCase
         $this->assertEquals('Segment 3', $filtered[1]->text);
     }
 
-    public function testGetSegmentsByIntervalGroupsCorrectly(): void
+    public function test_get_segments_by_interval_groups_correctly(): void
     {
         $rawOutput = "[[
             {'duration': 5.0, 'start': 0.0, 'text': 'A'},
@@ -223,7 +223,7 @@ class YouTubeTranscriptionServiceTest extends TestCase
         $this->assertEquals('B C', $grouped[1]['text']);
     }
 
-    public function testGetTranscriptionMultiLanguageTriesLanguages(): void
+    public function test_get_transcription_multi_language_tries_languages(): void
     {
         $rawOutput = "[[{'duration': 5.04, 'start': 1.92, 'text': 'French text'}]]";
 
@@ -237,7 +237,7 @@ class YouTubeTranscriptionServiceTest extends TestCase
         $this->assertEquals('French text', $transcription->getPlainText());
     }
 
-    public function testServiceUsesConfiguredLanguages(): void
+    public function test_service_uses_configured_languages(): void
     {
         $rawOutput = "[[{'duration': 5.04, 'start': 1.92, 'text': 'Test'}]]";
 

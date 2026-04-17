@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
-use Filament\Tables\Table;
 use Filament\Actions\Action;
-use Filament\Widgets\TableWidget;
-use Filament\Support\Icons\Heroicon;
 use Filament\Forms\Components\Select;
-use Filament\Tables\Columns\TextColumn;
-use LaravelDaily\FilaTeams\Models\Team;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Filament\Widgets\TableWidget;
 use Illuminate\Support\Facades\Auth;
-use LaravelDaily\FilaTeams\Facades\FilaTeams;
-use LaravelDaily\FilaTeams\Models\TeamInvitation;
-use LaravelDaily\FilaTeams\Rules\UniqueTeamInvitation;
 use Illuminate\Support\Facades\Notification as NotificationFacade;
+use LaravelDaily\FilaTeams\Facades\FilaTeams;
+use LaravelDaily\FilaTeams\Models\Team;
+use LaravelDaily\FilaTeams\Models\TeamInvitation;
 use LaravelDaily\FilaTeams\Notifications\TeamInvitationNotification;
+use LaravelDaily\FilaTeams\Rules\UniqueTeamInvitation;
 
 class InvitationsManager extends TableWidget
 {
@@ -66,9 +66,9 @@ class InvitationsManager extends TableWidget
                     ])
                     ->action(function (array $data) use ($team, $user): void {
                         $invitation = TeamInvitation::create([
-                            'team_id'    => $team->id,
-                            'email'      => $data['email'],
-                            'role'       => $data['role'],
+                            'team_id' => $team->id,
+                            'email' => $data['email'],
+                            'role' => $data['role'],
                             'invited_by' => $user->id,
                             'expires_at' => now()->addDays(config('filateams.invitation.expires_after_days', 7)),
                         ]);
